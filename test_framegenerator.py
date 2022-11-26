@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import framegenerator
 
 import matplotlib.pyplot as plt

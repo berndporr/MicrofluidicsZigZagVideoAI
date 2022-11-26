@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import tqdm
 import random
 import pathlib
