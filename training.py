@@ -21,9 +21,9 @@ healthy_first_clip = avi_healthy.get_frames_of_clip(0)
 #print(healthy_first_clip)
 #print(healthy_first_clip.shape)
 
-train_clips_list = range(0,300)
-val_clips_list = range(300,450)
-test_clips_list = range(450,600)
+train_clips_list = range(0,100)
+val_clips_list = range(200,300)
+test_clips_list = range(300,600)
 
 # Create the training set
 output_signature = (tf.TensorSpec(shape = (None, None, None, 3), dtype = tf.float32),
@@ -48,3 +48,45 @@ print(f'Shape of training labels: {train_labels.shape}')
 val_frames, val_labels = next(iter(val_ds))
 print(f'Shape of validation set of frames: {val_frames.shape}')
 print(f'Shape of validation labels: {val_labels.shape}')
+
+AUTOTUNE = tf.data.AUTOTUNE
+
+train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size = AUTOTUNE)
+val_ds = val_ds.cache().shuffle(1000).prefetch(buffer_size = AUTOTUNE)
+
+train_ds = train_ds.batch(2)
+val_ds = val_ds.batch(2)
+
+train_frames, train_labels = next(iter(train_ds))
+print(f'Shape of training set of frames: {train_frames.shape}')
+print(f'Shape of training labels: {train_labels.shape}')
+
+val_frames, val_labels = next(iter(val_ds))
+print(f'Shape of validation set of frames: {val_frames.shape}')
+print(f'Shape of validation labels: {val_labels.shape}')
+
+
+
+
+
+########
+## Random Keras Model
+
+net = tf.keras.applications.EfficientNetB0(include_top = False)
+net.trainable = False
+
+model = tf.keras.Sequential([
+    tf.keras.layers.Rescaling(scale=255),
+    tf.keras.layers.TimeDistributed(net),
+    tf.keras.layers.Dense(10),
+    tf.keras.layers.GlobalAveragePooling3D()
+])
+
+model.compile(optimizer = 'adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True),
+              metrics=['accuracy'])
+
+model.fit(train_ds, 
+          epochs = 10,
+          validation_data = val_ds,
+          callbacks = tf.keras.callbacks.EarlyStopping(patience = 2, monitor = 'val_loss'))
