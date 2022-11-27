@@ -13,10 +13,11 @@ import tensorflow as tf
 
 class AVIfile:
 
-  def __init__(self, video_path, label_name, clip_length = 30, crop_rect = False):
+  def __init__(self, video_path, label_name, clip_length = 30, crop_rect = False, frame_step = 1):
     self.clip_length = clip_length
     self.label_name = label_name
     self.crop_rect = crop_rect
+    self.frame_step = frame_step
     self.src = cv2.VideoCapture(str(video_path))
     if not self.src:
       print("Could not open:",video_path)
@@ -36,7 +37,7 @@ class AVIfile:
   def get_number_of_clips(self):
     return self.video_length // self.clip_length
 
-  def get_frames_of_clip(self, clip_index, frame_step = 1):
+  def get_frames_of_clip(self, clip_index):
     output_size = (self.width, self.height)
 
     framepos =  clip_index * self.clip_length
@@ -55,7 +56,7 @@ class AVIfile:
 
     for i in range(1,self.clip_length):
       ret, frame = self.src.read()
-      if (i % frame_step) == 0:
+      if (i % self.frame_step) == 0:
         if ret:
           frame = self.format_frames(frame)
           result.append(frame)
