@@ -11,28 +11,12 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-def format_frames(frame, output_size):
-  """
-    Pad and resize an image from a video.
-
-    Args:
-      frame: Image that needs to resized and padded. 
-      output_size: Pixel size of the output frame image.
-
-    Return:
-      Formatted frame with padding of specified output size.
-  """
-  frame = tf.image.convert_image_dtype(frame, tf.float32)
-  #frame = tf.image.resize_with_pad(frame, *output_size)
-  return frame
-
-
 class AVIfile:
 
-  def __init__(self, video_path, label_name, clip_length = 30, scaling = False):
+  def __init__(self, video_path, label_name, clip_length = 30, crop_rect = False):
     self.clip_length = clip_length
-    self.scaling = False;
     self.label_name = label_name
+    self.crop_rect = crop_rect
     self.src = cv2.VideoCapture(str(video_path))
     if not self.src:
       print("Could not open:",video_path)
@@ -45,14 +29,15 @@ class AVIfile:
   def __del__(self):
     self.src.release()
 
+  def format_frames(self,frame):
+    frame = tf.image.convert_image_dtype(frame, tf.float32)
+    return frame
+
   def get_number_of_clips(self):
     return self.video_length // self.clip_length
 
   def get_frames_of_clip(self, clip_index, frame_step = 1):
-    if (self.scaling):
-      output_size = (int(self.width * self.output_scaling), int(self.height * self.output_scaling))
-    else:
-      output_size = (self.width, self.height)
+    output_size = (self.width, self.height)
 
     framepos =  clip_index * self.clip_length
     # print("Going to frame pos:",framepos)
@@ -64,6 +49,7 @@ class AVIfile:
     if not ret:
       print("Frame read error")
       quit()
+    frame = self.format_frames(frame)
 
     result.append(frame)
 
@@ -71,11 +57,17 @@ class AVIfile:
       ret, frame = self.src.read()
       if (i % frame_step) == 0:
         if ret:
+          frame = self.format_frames(frame)
           result.append(frame)
         else:
           result.append(np.zeros_like(result[0]))
     ## returning the array but fixing openCV's odd BGR format to RGB
     result = np.array(result)[...,[2,1,0]]
+
+    if (self.crop_rect):
+      result = tf.image.crop_to_bounding_box(result, 
+      self.crop_rect[0][1], self.crop_rect[0][0], 
+      self.crop_rect[1][1]-self.crop_rect[0][1], self.crop_rect[1][0]-self.crop_rect[0][0])
 
     return result
 
