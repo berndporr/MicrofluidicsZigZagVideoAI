@@ -3,16 +3,17 @@
 import framegenerator
 import cv2
 import tensorflow as tf
-
-
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+
+devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(devices[0],True)
 
 path_to_healthy = "/data/ZigZag-Channel-beads4_5um/60xPhotron_C001H001S0005.avi"
 path_to_ill = "/data/ZigZag-Channel-beads4_5um/60xPhotron_C001H001S0004.avi"
 
 crop = [[100,0],[238,138]]
-frame_step = 2
+frame_step = 5
 avi_healthy = framegenerator.AVIfile(path_to_healthy,"Healthy", crop_rect = crop, frame_step = frame_step)
 avi_ill  = framegenerator.AVIfile(path_to_ill,"Ill", crop_rect = crop, frame_step = frame_step)
 
@@ -22,8 +23,8 @@ healthy_first_clip = avi_healthy.get_frames_of_clip(0)
 #print(healthy_first_clip)
 #print(healthy_first_clip.shape)
 
-train_clips_list = range(0,10)
-val_clips_list = range(200,210)
+train_clips_list = range(0,100)
+val_clips_list = range(200,300)
 test_clips_list = range(300,600)
 
 # Create the training set
