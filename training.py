@@ -12,8 +12,8 @@ tf.config.experimental.set_memory_growth(devices[0],True)
 path_to_healthy = "/data/ZigZag-Channel-beads4_5um/60xPhotron_C001H001S0005.avi"
 path_to_ill = "/data/ZigZag-Channel-beads4_5um/60xPhotron_C001H001S0004.avi"
 
-crop = [[100,0],[238,138]]
-frame_step = 5
+crop = [[100,0],[600,138]]
+frame_step = 2
 avi_healthy = framegenerator.AVIfile(path_to_healthy,"Healthy", crop_rect = crop, frame_step = frame_step)
 avi_ill  = framegenerator.AVIfile(path_to_ill,"Ill", crop_rect = crop, frame_step = frame_step)
 
