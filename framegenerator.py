@@ -13,11 +13,15 @@ import tensorflow as tf
 
 class AVIfile:
 
-  def __init__(self, video_path, label_name, clip_length = 30, crop_rect = False, frame_step = 1):
+  def __init__(self, video_path, label_name, clip_length, crop_rect = False, frame_step = 1, frames2ret = False):
     self.clip_length = clip_length
     self.label_name = label_name
     self.crop_rect = crop_rect
     self.frame_step = frame_step
+    if not frames2ret:
+      self.frames2ret = clip_length
+    else:
+      self.frames2ret = frames2ret
     self.src = cv2.VideoCapture(str(video_path))
     if not self.src:
       print("Could not open:",video_path)
@@ -26,6 +30,10 @@ class AVIfile:
     self.height = int(self.src.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
     print("{} opened: {} frames, {} clips at {}x{}".format(video_path,self.video_length,self.get_number_of_clips(),
     self.width,self.height))
+
+  def calcBackground(self,clip_index):
+    self.background_x_split = self.width / 2
+    left = self.get_frames_of_clip(clip_index)
 
   def __del__(self):
     self.src.release()
@@ -41,7 +49,8 @@ class AVIfile:
     output_size = (self.width, self.height)
 
     framepos =  clip_index * self.clip_length
-    # print("Going to frame pos:",framepos)
+    print("---> {} going to frame pos {}, clip length = {}, clip index = {}.".
+      format(self.label_name,framepos,self.clip_length,clip_index))
     self.src.set(cv2.CAP_PROP_POS_FRAMES,framepos)
 
     result = []
@@ -54,7 +63,7 @@ class AVIfile:
 
     result.append(frame)
 
-    for i in range(1,self.clip_length):
+    for i in range(1,self.frames2ret):
       ret, frame = self.src.read()
       if (i % self.frame_step) == 0:
         if ret:
