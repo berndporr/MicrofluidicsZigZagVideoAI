@@ -5,6 +5,7 @@ import random
 import pathlib
 import itertools
 import collections
+import copy
 
 import os
 import cv2
@@ -32,8 +33,14 @@ class AVIfile:
     self.width,self.height))
 
   def calcBackground(self,clip_index):
-    self.background_x_split = self.width / 2
-    left = self.get_frames_of_clip(clip_index)
+    self.background_x_split = self.width // 2
+    avg = np.zeros(shape=[self.height,self.width,3])
+    allframes = self.get_frames_of_clip(clip_index)
+    for f in allframes:
+      f2 = copy.deepcopy(f)
+      avg[:,:self.background_x_split] += f2[:,:self.background_x_split]
+      avg[:,:self.background_x_split] += f2[:,self.background_x_split:]
+    avg = avg / len(allframes)
 
   def __del__(self):
     self.src.release()

@@ -6,8 +6,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(devices[0],True)
+#devices = tf.config.list_physical_devices('GPU')
+#tf.config.experimental.set_memory_growth(devices[0],True)
 
 path_to_healthy = "/data/RBC-ZigZag/Selection/60xPhotron_20mBar_2_C001H001S0001.avi"
 path_to_ill = "/data/RBC-ZigZag/Selection/60xPhotron_20mBar_2___1percentGA_C001H001S0001.avi"
