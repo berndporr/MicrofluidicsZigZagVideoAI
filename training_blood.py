@@ -15,8 +15,9 @@ path_to_ill = "/data/RBC-ZigZag/Selection/60xPhotron_20mBar_2___1percentGA_C001H
 crop = [[100,0],[400,120]]
 clip_len = 50
 fret = 30
-avi_healthy = framegenerator.AVIfile(path_to_healthy,"Healthy", crop_rect = crop, clip_length = clip_len, frames2ret = fret)
-avi_ill  = framegenerator.AVIfile(path_to_ill,"Ill", crop_rect = crop, clip_length = clip_len, frames2ret = fret)
+do_background_subtraction = True
+avi_healthy = framegenerator.AVIfile(path_to_healthy,"Healthy", crop_rect = crop, clip_length = clip_len, frames2ret = fret, subtract_background = do_background_subtraction)
+avi_ill  = framegenerator.AVIfile(path_to_ill,"Ill", crop_rect = crop, clip_length = clip_len, frames2ret = fret, subtract_background = do_background_subtraction)
 
 avi_files = [avi_healthy,avi_ill]
 
