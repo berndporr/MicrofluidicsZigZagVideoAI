@@ -14,11 +14,22 @@ import tensorflow as tf
 
 class AVIfile:
 
-  def __init__(self, video_path, label_name, clip_length, crop_rect = False, frame_step = 1, frames2ret = False):
+  def __init__(self, video_path, label_name, clip_length, crop_rect = False, frame_step = 1, frames2ret = False, subtract_background = False):
+    """
+    Wrapper for the raw AVI file.
+    video_path: path to the AVI video clip
+    label_name: label of the dataset, for example healthy or ill
+    clip_length: the number of frames per clip
+    crop_rect: rectangle to crop the frames
+    frame_step: defines how many frames to skip to reduce the amount of data
+    frames2ret: frames per clip to return if not the whole clip_length is taken
+    subtract_background: if background subtraction should be performed or not
+    """
     self.clip_length = clip_length
     self.label_name = label_name
     self.crop_rect = crop_rect
     self.frame_step = frame_step
+    self.subtract_background = subtract_background
     if not frames2ret:
       self.frames2ret = clip_length
     else:
@@ -32,15 +43,21 @@ class AVIfile:
     print("{} opened: {} frames, {} clips at {}x{}".format(video_path,self.video_length,self.get_number_of_clips(),
     self.width,self.height))
 
-  def calcBackground(self,clip_index):
-    self.background_x_split = self.width // 2
-    avg = np.zeros(shape=[self.height,self.width,3])
-    allframes = self.get_frames_of_clip(clip_index)
+  def calcBackground(self,allframes):
+    # at the momemnt just naive average
+    avg = np.zeros_like(allframes[0])
     for f in allframes:
-      f2 = copy.deepcopy(f)
-      avg[:,:self.background_x_split] += f2[:,:self.background_x_split]
-      avg[:,:self.background_x_split] += f2[:,self.background_x_split:]
+      avg += f
     avg = avg / len(allframes)
+    return avg
+
+  def subtractBackground(self, allframes):
+    background = self.calcBackground(allframes)
+    frames_without_bg = []
+    for f in allframes:
+      f2 = np.abs(f - background)
+      frames_without_bg.append(f2)
+    return frames_without_bg
 
   def __del__(self):
     self.src.release()
@@ -81,15 +98,21 @@ class AVIfile:
     ## returning the array but fixing openCV's odd BGR format to RGB
     result = np.array(result)[...,[2,1,0]]
 
-    if (self.crop_rect):
+    if self.crop_rect:
       result = tf.image.crop_to_bounding_box(result, 
       self.crop_rect[0][1], self.crop_rect[0][0], 
       self.crop_rect[1][1]-self.crop_rect[0][1], self.crop_rect[1][0]-self.crop_rect[0][0])
+
+    if self.subtract_background:
+      result = self.subtractBackground(result)
 
     return result
 
 
 class FrameGenerator:
+  """
+  Class which feeds a list of label/video into the TF film classifier. Done as a stream.
+  """
   def __init__(self, avifiles, clips_list, training = False):
     self.avifiles = avifiles
     self.training = training

@@ -16,23 +16,41 @@ crop = [[000,0],[500,120]]
 
 avi_healthy = framegenerator.AVIfile(path_to_healthy,"Healthy", crop_rect = crop, clip_length = healthy_clip_len)
 
-healthy_first_clip = avi_healthy.get_frames_of_clip(0)
+clip_index = 0
 
-fig, ax = plt.subplots()
-ims = []
+healthy_first_clip_with_bg = avi_healthy.get_frames_of_clip(clip_index)
 
-for frame in healthy_first_clip:
-      im = ax.imshow(frame, animated=True)
-      ims.append([im])
+fig1, ax1 = plt.subplots()
+ims1 = []
 
-ani = animation.ArtistAnimation(fig, ims, interval=50, blit=True,
+for frame in healthy_first_clip_with_bg:
+      im = ax1.imshow(frame, animated=True)
+      ims1.append([im])
+
+ani1 = animation.ArtistAnimation(fig1, ims1, interval=1000, blit=True,
                                 repeat_delay=0)
 
 
-bg = avi_healthy.calcBackground(0)
+bg = avi_healthy.calcBackground(healthy_first_clip_with_bg)
 
-figure("Background")
+plt.figure("Background")
 
 plt.imshow(bg)
+
+avi_without_bg_healthy = framegenerator.AVIfile(
+      path_to_healthy, "Healthy", crop_rect = crop, clip_length = healthy_clip_len, subtract_background = True)
+
+healthy_first_clip_bg_subtracted = avi_without_bg_healthy.get_frames_of_clip(clip_index)
+
+fig2, ax2 = plt.subplots()
+ims2 = []
+
+for frame in healthy_first_clip_bg_subtracted:
+      im = ax2.imshow(frame, animated=True)
+      ims1.append([im])
+
+ani2 = animation.ArtistAnimation(fig2, ims2, interval=50, blit=True,
+                              repeat_delay=0)
+
 
 plt.show()
