@@ -40,8 +40,8 @@ class AVIfile:
     self.video_length = int(self.src.get(cv2.CAP_PROP_FRAME_COUNT))
     self.width  = int(self.src.get(cv2.CAP_PROP_FRAME_WIDTH))   # float `width`
     self.height = int(self.src.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
-    print("{} opened: {} frames, {} clips at {}x{}".format(video_path,self.video_length,self.get_number_of_clips(),
-    self.width,self.height))
+    print("{} opened: {} frames, {} clips at {}x{}, bgsub={}".format(video_path,self.video_length,self.get_number_of_clips(),
+    self.width,self.height,self.subtract_background))
 
   def calcBackground(self,allframes):
     # at the momemnt just naive average
@@ -55,7 +55,13 @@ class AVIfile:
     background = self.calcBackground(allframes)
     frames_without_bg = []
     for f in allframes:
-      f2 = np.abs(f - background)
+      if self.subtract_background in "abs":
+        f2 = np.abs(f - background)
+      elif self.subtract_background in "rect":
+        f2 = np.maximum(f - background, 0)
+      else:
+        print("Undefined backgroud subtraction method")
+        quit()
       frames_without_bg.append(f2)
     return frames_without_bg
 
@@ -73,8 +79,8 @@ class AVIfile:
     output_size = (self.width, self.height)
 
     framepos =  clip_index * self.clip_length
-    print("---> {} going to frame pos {}, clip length = {}, clip index = {}.".
-      format(self.label_name,framepos,self.clip_length,clip_index))
+    print("---> {} going to frame pos {}, clip index = {}.".
+      format(self.label_name,framepos,clip_index))
     self.src.set(cv2.CAP_PROP_POS_FRAMES,framepos)
 
     result = []

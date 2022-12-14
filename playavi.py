@@ -5,6 +5,7 @@ import random
 import pathlib
 import itertools
 import collections
+import sys
 
 import os
 import cv2
@@ -13,12 +14,15 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
+if len(sys.argv) < 2:
+      print("Usage: {} <avifile>".format(sys.argv[0]))
+      quit()
 
-src = cv2.VideoCapture("/data/ZigZag-Channel-beads4_5um/60xPhotron_C001H001S0005.avi")
+src = cv2.VideoCapture(sys.argv[1])
 video_length = int(src.get(cv2.CAP_PROP_FRAME_COUNT))
 width  = int(src.get(cv2.CAP_PROP_FRAME_WIDTH))   # float `width`
 height = int(src.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
-print(width,"x",height)
+print("Frame size: {}x{}".format(width,height))
 
 fig, ax = plt.subplots()
 ims = []

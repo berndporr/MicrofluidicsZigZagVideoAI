@@ -12,12 +12,24 @@ import matplotlib.animation as animation
 path_to_healthy = "/data/RBC-ZigZag/Selection/60xPhotron_20mBar_2_C001H001S0001.avi"
 path_to_ill = "/data/RBC-ZigZag/Selection/60xPhotron_20mBar_2___1percentGA_C001H001S0001.avi"
 
-crop = [[100,0],[400,120]]
+crop = [[100,0],[500,120]]
 clip_len = 50
-fret = 30
-do_background_subtraction = True
-avi_healthy = framegenerator.AVIfile(path_to_healthy,"Healthy", crop_rect = crop, clip_length = clip_len, frames2ret = fret, subtract_background = do_background_subtraction)
-avi_ill  = framegenerator.AVIfile(path_to_ill,"Ill", crop_rect = crop, clip_length = clip_len, frames2ret = fret, subtract_background = do_background_subtraction)
+fret = False
+do_background_subtraction = "rect"
+
+avi_healthy = framegenerator.AVIfile(
+  path_to_healthy,"Healthy", 
+  crop_rect = crop, 
+  clip_length = clip_len, 
+  frames2ret = fret, 
+  subtract_background = do_background_subtraction)
+
+avi_ill  = framegenerator.AVIfile(
+  path_to_ill,"Ill", 
+  crop_rect = crop, 
+  clip_length = clip_len, 
+  frames2ret = fret, 
+  subtract_background = do_background_subtraction)
 
 avi_files = [avi_healthy,avi_ill]
 
@@ -27,7 +39,7 @@ healthy_first_clip = avi_healthy.get_frames_of_clip(0)
 
 train_clips_list = range(0,100)
 val_clips_list = range(200,300)
-test_clips_list = range(300,600)
+test_clips_list = range(400,600)
 
 # Create the training set
 output_signature = (tf.TensorSpec(shape = (None, None, None, 3), dtype = tf.float32),
