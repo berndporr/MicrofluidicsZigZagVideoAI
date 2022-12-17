@@ -6,6 +6,7 @@ import pathlib
 import itertools
 import collections
 import copy
+import ruptures as rpt
 
 import os
 import cv2
@@ -43,8 +44,37 @@ class AVIfile:
     print("{} opened: {} frames, {} clips at {}x{}, bgsub={}".format(video_path,self.video_length,self.get_number_of_clips(),
     self.width,self.height,self.subtract_background))
 
+  def calcMovement(self,frames):
+    m = []
+    for i in range(len(frames)-1):
+      f1 = frames[i]
+      f2 = frames[i+1]
+      df = np.abs(f1 - f2)
+      m.append(np.max(df))
+    m = np.array(m)
+    m -= np.average(m)
+    return m
+
   def calcBackground(self,allframes):
-    # at the momemnt just naive average
+    halfwidth = allframes.shape[2]//2
+    print(allframes.shape)
+    print(0,0,allframes.shape[1],halfwidth)
+    left = tf.image.crop_to_bounding_box(allframes,0,0,allframes.shape[1],halfwidth)
+    print(0,halfwidth,allframes.shape[1],allframes.shape[2]-halfwidth)
+    right = tf.image.crop_to_bounding_box(allframes,0,halfwidth,allframes.shape[1],allframes.shape[2]-halfwidth)
+    m_left = self.calcMovement(left)
+    m_right = self.calcMovement(right)
+    print("Left:",m_left)
+    print("Right:",m_right)
+    print("Diff:",m_left-m_right)
+    m_diff = m_left-m_right
+    frame_no_cell_in_2nd_half = halfwidth
+    for i in range(len(m_diff)):
+      if m_diff[i] < 0:
+        frame_no_cell_in_2nd_half = i
+        print("Found:",i)
+        break
+    print("Division at:",frame_no_cell_in_2nd_half)
     avg = np.zeros_like(allframes[0])
     for f in allframes:
       avg += f
