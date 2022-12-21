@@ -57,7 +57,7 @@ class AVIfile:
 
   def calcBackground(self,allframes):
     halfwidth = allframes.shape[2]//2
-    print(allframes.shape)
+    print("allframes.shape",allframes.shape)
     print(0,0,allframes.shape[1],halfwidth)
     left = tf.image.crop_to_bounding_box(allframes,0,0,allframes.shape[1],halfwidth)
     print(0,halfwidth,allframes.shape[1],allframes.shape[2]-halfwidth)
@@ -75,10 +75,20 @@ class AVIfile:
         print("Found:",i)
         break
     print("Division at:",frame_no_cell_in_2nd_half)
-    avg = np.zeros_like(allframes[0])
-    for f in allframes:
-      avg += f
-    avg = avg / len(allframes)
+    left_avg = np.zeros_like(left[0])
+    n = 0
+    for i in range(frame_no_cell_in_2nd_half,len(allframes)):
+      left_avg += left[i]
+      n += 1
+    left_avg = left_avg / n
+    right_avg = np.zeros_like(right[0])
+    n = 0
+    for i in range(0,frame_no_cell_in_2nd_half):
+      right_avg += right[i]
+      n += 1
+    right_avg = right_avg / n
+    avg = np.concatenate((left_avg, right_avg), axis=1)
+    print("BG avg.shape=",avg.shape)
     return avg
 
   def subtractBackground(self, allframes):

@@ -36,7 +36,7 @@ if animate_orig:
 
 bg = avi_healthy.calcBackground(healthy_first_clip_with_bg)
 
-show_background = False
+show_background = True
 
 if show_background:
       plt.figure("Background")
