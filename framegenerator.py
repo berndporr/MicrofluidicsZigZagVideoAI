@@ -46,10 +46,11 @@ class AVIfile:
 
   def calcMovement(self,frames):
     m = []
-    for i in range(len(frames)-1):
+    for i in range(len(frames)-2):
       f1 = frames[i]
-      f2 = frames[i+1]
+      f2 = frames[i+2]
       df = np.abs(f1 - f2)
+      df = df**2
       m.append(np.max(df))
     m = np.array(m)
     m -= np.average(m)
@@ -66,24 +67,30 @@ class AVIfile:
     m_right = self.calcMovement(right)
     print("Left:",m_left)
     print("Right:",m_right)
-    print("Diff:",m_left-m_right)
     m_diff = m_left-m_right
+    print("Diff:",m_diff)
     frame_no_cell_in_2nd_half = halfwidth
-    for i in range(len(m_diff)):
-      if m_diff[i] < 0:
+    for i in range(len(m_diff)-1):
+      print("Diff: ",i,m_diff[i])
+      if (m_diff[i] < 0) and (m_diff[i+1] < 0):
         frame_no_cell_in_2nd_half = i
-        print("Found:",i)
         break
     print("Division at:",frame_no_cell_in_2nd_half)
     left_avg = np.zeros_like(left[0])
     n = 0
-    for i in range(frame_no_cell_in_2nd_half,len(allframes)):
+    a = frame_no_cell_in_2nd_half + ( len(allframes) - frame_no_cell_in_2nd_half ) // 2
+    if a > (len(allframes) - 1):
+      a = len(allframes) - 1
+    for i in range(a,len(allframes)):
       left_avg += left[i]
       n += 1
     left_avg = left_avg / n
     right_avg = np.zeros_like(right[0])
     n = 0
-    for i in range(0,frame_no_cell_in_2nd_half):
+    b = frame_no_cell_in_2nd_half // 2
+    if b == 0:
+      b = 1
+    for i in range(0,b):
       right_avg += right[i]
       n += 1
     right_avg = right_avg / n
@@ -94,6 +101,7 @@ class AVIfile:
   def subtractBackground(self, allframes):
     background = self.calcBackground(allframes)
     frames_without_bg = []
+    i = 0
     for f in allframes:
       if self.subtract_background in "abs":
         f2 = np.abs(f - background)
@@ -102,6 +110,7 @@ class AVIfile:
       else:
         print("Undefined backgroud subtraction method")
         quit()
+      i += 1
       frames_without_bg.append(f2)
     return frames_without_bg
 
