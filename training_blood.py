@@ -12,6 +12,8 @@ import matplotlib.animation as animation
 path_to_healthy = "/data/RBC-ZigZag/Selection/60xPhotron_20mBar_2_C001H001S0001.avi"
 path_to_ill = "/data/RBC-ZigZag/Selection/60xPhotron_20mBar_2___1percentGA_C001H001S0001.avi"
 
+background_subtraction_method = "rect"
+
 crop = [[100,0],[500,120]]
 clip_len = 50
 fret = False
@@ -22,14 +24,14 @@ avi_healthy = framegenerator.AVIfile(
   crop_rect = crop, 
   clip_length = clip_len, 
   frames2ret = fret, 
-  subtract_background = do_background_subtraction)
+  subtract_background = background_subtraction_method)
 
 avi_ill  = framegenerator.AVIfile(
   path_to_ill,"Ill", 
   crop_rect = crop, 
   clip_length = clip_len, 
   frames2ret = fret, 
-  subtract_background = do_background_subtraction)
+  subtract_background = background_subtraction_method)
 
 avi_files = [avi_healthy,avi_ill]
 
