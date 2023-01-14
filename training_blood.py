@@ -108,3 +108,13 @@ model.fit(train_ds,
           epochs = 10,
           validation_data = val_ds,
           callbacks = tf.keras.callbacks.EarlyStopping(patience = 2, monitor = 'val_loss'))
+
+model.summary()
+
+# model.save('models/blood')
+
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
+tflite_model = converter.convert()
+
+with open('model.tflite', 'wb') as f:
+  f.write(tflite_model)
