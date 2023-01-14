@@ -38,6 +38,7 @@ class AVIfile:
     self.src = cv2.VideoCapture(str(video_path))
     if not self.src:
       print("Could not open:",video_path)
+      quit()
     self.video_length = int(self.src.get(cv2.CAP_PROP_FRAME_COUNT))
     self.width  = int(self.src.get(cv2.CAP_PROP_FRAME_WIDTH))   # float `width`
     self.height = int(self.src.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
@@ -58,24 +59,24 @@ class AVIfile:
 
   def calcBackground(self,allframes):
     halfwidth = allframes.shape[2]//2
-    print("allframes.shape",allframes.shape)
-    print(0,0,allframes.shape[1],halfwidth)
+    # print("allframes.shape",allframes.shape)
+    # print(0,0,allframes.shape[1],halfwidth)
     left = tf.image.crop_to_bounding_box(allframes,0,0,allframes.shape[1],halfwidth)
-    print(0,halfwidth,allframes.shape[1],allframes.shape[2]-halfwidth)
+    # print(0,halfwidth,allframes.shape[1],allframes.shape[2]-halfwidth)
     right = tf.image.crop_to_bounding_box(allframes,0,halfwidth,allframes.shape[1],allframes.shape[2]-halfwidth)
     m_left = self.calcMovement(left)
     m_right = self.calcMovement(right)
-    print("Left:",m_left)
-    print("Right:",m_right)
+    # print("Left:",m_left)
+    # print("Right:",m_right)
     m_diff = m_left-m_right
-    print("Diff:",m_diff)
+    # print("Diff:",m_diff)
     frame_no_cell_in_2nd_half = halfwidth
     for i in range(len(m_diff)-1):
-      print("Diff: ",i,m_diff[i])
+      # print("Diff: ",i,m_diff[i])
       if (m_diff[i] < 0) and (m_diff[i+1] < 0):
         frame_no_cell_in_2nd_half = i
         break
-    print("Division at:",frame_no_cell_in_2nd_half)
+    print("Calculating background: cell in 2nd half at frame #{}.".format(frame_no_cell_in_2nd_half))
     left_avg = np.zeros_like(left[0])
     n = 0
     a = frame_no_cell_in_2nd_half + ( len(allframes) - frame_no_cell_in_2nd_half ) // 2
@@ -95,7 +96,7 @@ class AVIfile:
       n += 1
     right_avg = right_avg / n
     avg = np.concatenate((left_avg, right_avg), axis=1)
-    print("BG avg.shape=",avg.shape)
+    # print("BG avg.shape=",avg.shape)
     return avg
 
   def subtractBackground(self, allframes):

@@ -23,16 +23,19 @@ healthy_first_clip_with_bg = avi_healthy.get_frames_of_clip(clip_index)
 
 animate_orig = True
 
-def saveFrames(allframes,prefix,scaling = 255):
-      i = 0
+# expects normalised frames values between 0..1
+def saveFrames(allframes, filename):
+      sz = (allframes.shape[2], allframes.shape[1])
+      vw = cv2.VideoWriter(filename+".avi",cv2.VideoWriter_fourcc(*'MJPG'), 10, sz)
       for f in allframes:
-            print("Max=",np.max(f)," min=",np.min(f))
-            f = np.array(f)
-            f = np.array(f * scaling,dtype=np.int8)
-            cv2.imwrite("tmp/{}{:03d}.jpg".format(prefix,int(i)),f);
-            i += 1
+            # back to openCV BGR uint8
+            f_sc = np.array(np.array(f) * 255.0, dtype=np.uint8)[...,[2,1,0]]
+            #print("savefr",f_sc.shape,"Max=",np.max(f_sc)," min=",np.min(f_sc))
+            vw.write(f_sc)
 
-saveFrames(healthy_first_clip_with_bg,"orig",1)
+
+# saving the orig file back as a movie
+saveFrames(healthy_first_clip_with_bg,"tmp/orig")
 if animate_orig:
       fig1, ax1 = plt.subplots()
       ims1 = []
@@ -62,9 +65,12 @@ ims2 = []
 
 m = np.max(healthy_first_clip_bg_subtracted)
 
-print("Max =",m)
+print("Max brightness value after background subtraction =",m)
 
 healthy_first_clip_bg_subtracted /= m
+
+# save the movie without background
+saveFrames(healthy_first_clip_bg_subtracted,"tmp/nobg")
 
 for frame in healthy_first_clip_bg_subtracted:
       im = ax2.imshow(frame, animated=True)
