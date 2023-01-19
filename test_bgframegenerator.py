@@ -56,7 +56,7 @@ if show_background:
       plt.imshow(bg)
 
 avi_without_bg_healthy = framegenerator.AVIfile(
-      path_to_healthy, "Healthy", crop_rect = crop, clip_length = healthy_clip_len, subtract_background = "rect")
+      path_to_healthy, "Healthy", crop_rect = crop, clip_length = healthy_clip_len, subtract_background = "opencv,rect")
 
 healthy_first_clip_bg_subtracted = avi_without_bg_healthy.get_frames_of_clip(clip_index)
 

@@ -15,7 +15,7 @@ import tensorflow as tf
 
 class AVIfile:
 
-  def __init__(self, video_path, label_name, clip_length, crop_rect = False, frame_step = 1, frames2ret = False, subtract_background = False):
+  def __init__(self, video_path, label_name, clip_length, crop_rect = False, frame_step = 1, subtract_background = ""):
     """
     Wrapper for the raw AVI file.
     video_path: path to the AVI video clip
@@ -31,10 +31,7 @@ class AVIfile:
     self.crop_rect = crop_rect
     self.frame_step = frame_step
     self.subtract_background = subtract_background
-    if not frames2ret:
-      self.frames2ret = clip_length
-    else:
-      self.frames2ret = frames2ret
+    self.frames2ret = clip_length
     self.src = cv2.VideoCapture(str(video_path))
     if not self.src:
       print("Could not open:",video_path)
@@ -99,22 +96,6 @@ class AVIfile:
     # print("BG avg.shape=",avg.shape)
     return avg
 
-  def subtractBackground(self, allframes):
-    background = self.calcBackground(allframes)
-    frames_without_bg = []
-    i = 0
-    for f in allframes:
-      if self.subtract_background in "abs":
-        f2 = np.abs(f - background)
-      elif self.subtract_background in "rect":
-        f2 = np.maximum(f - background, 0)
-      else:
-        print("Undefined backgroud subtraction method")
-        quit()
-      i += 1
-      frames_without_bg.append(f2)
-    return frames_without_bg
-
   def __del__(self):
     self.src.release()
 
@@ -133,24 +114,30 @@ class AVIfile:
       format(self.label_name,framepos,clip_index))
     self.src.set(cv2.CAP_PROP_POS_FRAMES,framepos)
 
+    frames2ignore = 0
+    if "opencv" in self.subtract_background:
+      backSub = cv2.createBackgroundSubtractorMOG2(history= 100, varThreshold=10)
+      frames2ignore = 5
+
     result = []
-
-    ret, frame = self.src.read()
-    if not ret:
-      print("Frame read error")
-      quit()
-    frame = self.format_frames(frame)
-
-    result.append(frame)
-
-    for i in range(1,self.frames2ret):
+    
+    for i in range(self.frames2ret):
       ret, frame = self.src.read()
-      if (i % self.frame_step) == 0:
-        if ret:
+      if not ret:
+          print("Fatal error. Could not read frame #",i)
+          quit()
+      if "opencv" in self.subtract_background:
+        fgMask = backSub.apply(frame)
+        mask = cv2.cvtColor(fgMask, cv2.COLOR_GRAY2BGR)
+        frame = cv2.bitwise_and(frame, mask)
+        print("O",end="")
+      if frames2ignore > 0:
+        frames2ignore -= 1
+      else:
+        if (i % self.frame_step) == 0:
           frame = self.format_frames(frame)
           result.append(frame)
-        else:
-          result.append(np.zeros_like(result[0]))
+
     ## returning the array but fixing openCV's odd BGR format to RGB
     result = np.array(result)[...,[2,1,0]]
 
@@ -159,8 +146,17 @@ class AVIfile:
       self.crop_rect[0][1], self.crop_rect[0][0], 
       self.crop_rect[1][1]-self.crop_rect[0][1], self.crop_rect[1][0]-self.crop_rect[0][0])
 
-    if self.subtract_background:
-      result = self.subtractBackground(result)
+    if "split" in self.subtract_background:
+      background = self.calcBackground(result)
+      result = result - background
+
+    if "abs" in self.subtract_background:
+      result = np.abs(result)
+    elif "rect" in self.subtract_background:
+      result = np.maximum(result, 0)
+    elif len(self.subtract_background) > 1:
+      print("Fatal. No bg postprocesssing method")
+      quit()
 
     return result
 
