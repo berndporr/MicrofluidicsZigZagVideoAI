@@ -116,7 +116,7 @@ class AVIfile:
 
     frames2ignore = 0
     if "opencv" in self.subtract_background:
-      backSub = cv2.createBackgroundSubtractorMOG2(history= 100, varThreshold=10)
+      backSub = cv2.createBackgroundSubtractorMOG2(history= 100, varThreshold=1)
       frames2ignore = 5
 
     result = []
