@@ -25,6 +25,10 @@ class AVIfile:
     frames2ret: frames per clip to return if not the whole clip_length is taken
     subtract_background: if background subtraction should be performed or not
     """
+    if len(subtract_background) > 2:
+      if not (("opencv" in subtract_background) or ("split" in subtract_background)):
+        print("Fatal: unknown background subtraction method.")
+        quit()
     self.clip_length = clip_length
     self.label_name = label_name
     self.crop_rect = crop_rect
@@ -133,7 +137,6 @@ class AVIfile:
         fgMask = backSub.apply(frame)
         mask = cv2.cvtColor(fgMask, cv2.COLOR_GRAY2BGR)
         frame = cv2.bitwise_and(frame, mask)
-        print("O",end="")
       if frames2ignore > 0:
         frames2ignore -= 1
       else:

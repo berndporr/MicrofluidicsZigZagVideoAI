@@ -19,12 +19,11 @@ paths_to_ill = [ "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H0
                 "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0004.avi"
 ]
 
-background_subtraction_method = "rect"
+background_subtraction_method = "opencv,rect"
 
 crop = [[100,0],[500,120]]
 clip_len = 50
 fret = False
-do_background_subtraction = "rect"
 
 avi_healthy = framegenerator.AVIpool(
   paths_to_healthy,
@@ -46,9 +45,9 @@ healthy_first_clip = avi_healthy.get_frames_of_clip(0)
 #print(healthy_first_clip)
 #print(healthy_first_clip.shape)
 
-train_clips_list = range(0,400,4)
-val_clips_list = range(400,500)
-test_clips_list = range(400,600)
+train_clips_list = range(0,500,5)
+val_clips_list = range(1,500,5)
+test_clips_list = range(2,500,5)
 
 # Create the training set
 output_signature = (tf.TensorSpec(shape = (None, None, None, 3), dtype = tf.float32),
