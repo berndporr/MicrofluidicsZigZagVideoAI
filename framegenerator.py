@@ -2,7 +2,6 @@
 
 import tqdm
 import random
-import pathlib
 import itertools
 import collections
 import copy
@@ -32,6 +31,7 @@ class AVIfile:
     self.frame_step = frame_step
     self.subtract_background = subtract_background
     self.frames2ret = clip_length
+    self.name = os.path.basename(video_path)
     self.src = cv2.VideoCapture(str(video_path))
     if not self.src:
       print("Could not open:",video_path)
@@ -106,6 +106,9 @@ class AVIfile:
   def get_number_of_clips(self):
     return self.video_length // self.clip_length
 
+  def get_filename(self):
+    return self.name
+
   def get_frames_of_clip(self, clip_index):
     output_size = (self.width, self.height)
 
@@ -171,7 +174,7 @@ class AVIpool:
     internalClipIndex = clip_index
     for a in self.aviFiles:
       if internalClipIndex < a.get_number_of_clips():
-        print("Going to #",internalClipIndex)
+        print("File:",a.name, end='')
         return a.get_frames_of_clip(internalClipIndex)
       internalClipIndex -= a.get_number_of_clips()
       if internalClipIndex < 0:
