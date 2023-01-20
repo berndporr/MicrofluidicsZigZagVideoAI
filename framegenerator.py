@@ -160,6 +160,22 @@ class AVIfile:
 
     return result
 
+class AVIpool:
+  def __init__(self, video_paths, label_name, clip_length, crop_rect = False, frame_step = 1, subtract_background = ""):
+    self.aviFiles = []
+    for p in video_paths:
+      avi = AVIfile(p,label_name, clip_length, crop_rect = crop_rect, frame_step = frame_step, subtract_background = subtract_background)
+      self.aviFiles.append(avi)
+
+  def get_frames_of_clip(self,clip_index):
+    internalClipIndex = clip_index
+    for a in self.aviFiles:
+      if internalClipIndex < a.get_number_of_clips():
+        print("Going to #",internalClipIndex)
+        return a.get_frames_of_clip(internalClipIndex)
+      internalClipIndex -= a.get_number_of_clips()
+      if internalClipIndex < 0:
+        print("Fatal error: internalClipIndex =",internalClipIndex," in AVIpool")
 
 class FrameGenerator:
   """
