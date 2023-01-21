@@ -15,7 +15,7 @@ path_to_ill = "/data/RBC-ZigZag/Selection/60xPhotron_20mBar_2___1percentGA_C001H
 background_subtraction_method = "rect"
 
 crop = [[100,0],[500,120]]
-clip_len = 50
+clip_len = 60
 fret = False
 do_background_subtraction = "rect"
 

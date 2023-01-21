@@ -9,60 +9,72 @@ import matplotlib.animation as animation
 #devices = tf.config.list_physical_devices('GPU')
 #tf.config.experimental.set_memory_growth(devices[0],True)
 
-paths_to_healthy = [ "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0008.avi",
-                     "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0009.avi",
-                     "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0010.avi" ]
+paths_to_healthy_learn = [ "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0008.avi",
+                           "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0009.avi",
+                           "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0010.avi" ]
 
-paths_to_ill = [ "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0001.avi",
-                "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0002.avi",
-                "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0003.avi",
-                "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0004.avi"
+paths_to_ill_learn = [ "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0001.avi",
+                       "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0002.avi",
+                       "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0004.avi"
 ]
+
+
+path_to_healthy_val = "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0001.avi"
+path_to_ill_val = "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0003.avi"
+
 
 background_subtraction_method = "opencv,rect"
 
 crop = [[100,0],[500,120]]
-clip_len = 50
-fret = False
+clip_len = 60
 
-avi_healthy = framegenerator.AVIpool(
-  paths_to_healthy,
+avi_healthy_learn = framegenerator.AVIpool(
+  paths_to_healthy_learn,
   "Healthy",
   crop_rect = crop,
   clip_length = clip_len,
   subtract_background = background_subtraction_method)
 
-avi_ill  = framegenerator.AVIpool(
-  paths_to_ill,
+avi_ill_learn  = framegenerator.AVIpool(
+  paths_to_ill_learn,
   "Ill",
   crop_rect = crop,
   clip_length = clip_len,
   subtract_background = background_subtraction_method)
 
-avi_files = [avi_healthy,avi_ill]
-
-healthy_first_clip = avi_healthy.get_frames_of_clip(0)
-#print(healthy_first_clip)
-#print(healthy_first_clip.shape)
-
-train_clips_list = range(0,500,5)
-val_clips_list = range(1,500,5)
-test_clips_list = range(2,500,5)
+avi_files_learn = [avi_healthy_learn,avi_ill_learn]
 
 # Create the training set
 output_signature = (tf.TensorSpec(shape = (None, None, None, 3), dtype = tf.float32),
                     tf.TensorSpec(shape = (), dtype = tf.int16))
 
-fg_train = framegenerator.FrameGenerator(avi_files, train_clips_list, training=True)
+maxClips = 100
+
+fg_train = framegenerator.FrameGenerator(avi_files_learn, training=True, max_clips=maxClips)
 train_ds = tf.data.Dataset.from_generator(fg_train,
                                           output_signature = output_signature)
 
-for frames, labels in train_ds.take(10):
-  print(labels)
 
-fg_val = framegenerator.FrameGenerator(avi_files, val_clips_list, training=True)
+
+avi_healthy_val = framegenerator.AVIfile(
+  path_to_healthy_val,
+  "Healthy",
+  crop_rect = crop,
+  clip_length = clip_len,
+  subtract_background = background_subtraction_method)
+
+avi_ill_val  = framegenerator.AVIfile(
+  path_to_ill_val,
+  "Ill",
+  crop_rect = crop,
+  clip_length = clip_len,
+  subtract_background = background_subtraction_method)
+
+avi_files_val = [avi_healthy_val,avi_ill_val]
+
+fg_val = framegenerator.FrameGenerator(avi_files_val, training=True)
 val_ds = tf.data.Dataset.from_generator(fg_val,
-                                          output_signature = output_signature)
+                                        output_signature = output_signature)
 
 # Print the shapes of the data
 train_frames, train_labels = next(iter(train_ds))

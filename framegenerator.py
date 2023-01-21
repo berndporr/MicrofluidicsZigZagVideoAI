@@ -169,9 +169,14 @@ class AVIfile:
 class AVIpool:
   def __init__(self, video_paths, label_name, clip_length, crop_rect = False, frame_step = 1, subtract_background = ""):
     self.aviFiles = []
+    self.numOfClips = 0
     for p in video_paths:
       avi = AVIfile(p,label_name, clip_length, crop_rect = crop_rect, frame_step = frame_step, subtract_background = subtract_background)
       self.aviFiles.append(avi)
+      self.numOfClips += avi.get_number_of_clips()
+
+  def get_number_of_clips(self):
+    return self.numOfClips
 
   def get_frames_of_clip(self,clip_index):
     internalClipIndex = clip_index
@@ -187,20 +192,28 @@ class FrameGenerator:
   """
   Class which feeds a list of label/video into the TF film classifier. Done as a stream.
   """
-  def __init__(self, avifiles, clips_list, training = False):
+  def __init__(self, avifiles, max_clips = False, training = False):
     self.avifiles = avifiles
     self.training = training
-    self.clips_list = clips_list
+    self.max_clips = max_clips
 
   def __call__(self):
     pairs = []
-    for clip_index in self.clips_list:
-      for label_index in range(len(self.avifiles)):
+    for label_index in range(len(self.avifiles)):
+      for clip_index in range(self.avifiles[label_index].get_number_of_clips()):
         pair = (label_index,clip_index)
         pairs.append(pair)
 
     if self.training:
       random.shuffle(pairs)
+
+    print("# of pairs:",len(pairs),", max_clips =",self.max_clips)
+
+    if self.max_clips:
+      if len(pairs) > self.max_clips:
+        print("We have",len(pairs),"clips but ",end='')
+        pairs = pairs[:self.max_clips]
+        print("we only use",len(pairs),"clips.")
 
     for label_index,clip_index in pairs:
       video_frames = self.avifiles[label_index].get_frames_of_clip(clip_index)
