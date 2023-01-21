@@ -25,7 +25,7 @@ healthy_first_clip = avi_healthy.get_frames_of_clip(0)
 
 train_clips_list = range(0,300)
 
-fg = framegenerator.FrameGenerator(avi_files, train_clips_list, training=True)
+fg = framegenerator.FrameGenerator(avi_files, training=True)
 
 for i in range(3):
   frames, label = next(fg())
