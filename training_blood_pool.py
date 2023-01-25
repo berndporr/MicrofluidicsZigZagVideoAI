@@ -23,7 +23,7 @@ path_to_healthy_val = "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0001.avi"
 path_to_ill_val = "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0003.avi"
 
 
-background_subtraction_method = "split,rect"
+background_subtraction_method = "opencv,rect"
 
 crop = [[100,0],[500,120]]
 clip_len = 60
