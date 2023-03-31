@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import glob
+import os
 import framegenerator
 import cv2
 import tensorflow as tf
@@ -9,19 +11,53 @@ import matplotlib.animation as animation
 #devices = tf.config.list_physical_devices('GPU')
 #tf.config.experimental.set_memory_growth(devices[0],True)
 
-paths_to_healthy_learn = [ "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0008.avi",
-                           "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0009.avi",
-                           "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0010.avi" ]
+##LEARN
+paths_to_healthy_learn = ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused",
+                           "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_overfocused2ticks",
+                           "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_underfocused2ticks",
+                           "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
+                           "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
+                           "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"]
 
-paths_to_ill_learn = [ "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0001.avi",
-                       "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0002.avi",
-                       "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0004.avi"
-]
+paths_to_ill_learn = ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent",
+                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused",
+                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
+                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"]
 
+# Create empty lists to store the file paths
+healthy_learn_files = []
+ill_learn_files = []
 
-path_to_healthy_val = "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_C001H001S0001.avi"
-path_to_ill_val = "/data/RBC-ZigZag/ALL/60xPhotron_20mBar_2___FA3_7percent_C001H001S0003.avi"
+# Loop over the directories and find all .avi files
+for path in paths_to_healthy_learn:
+    for file in os.listdir(path):
+        if file.endswith('.avi'):
+            healthy_learn_files.append(os.path.join(path, file))
 
+for path in paths_to_ill_learn:
+    for file in os.listdir(path):
+        if file.endswith('.avi'):
+            ill_learn_files.append(os.path.join(path, file))
+
+print("Healthy Train Files:", healthy_learn_files)
+print("Ill Train Files:", ill_learn_files)
+
+##VALIDATION
+path_to_healthy_val = "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused"
+path_to_ill_val = "/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent"
+
+# Read all .avi files in path_to_healthy_val directory
+healthy_val_files = []
+for file in glob.glob(os.path.join(path_to_healthy_val, "*.avi")):
+    healthy_val_files.append(file)
+
+# Read all .avi files in path_to_ill_val directory
+ill_val_files = []
+for file in glob.glob(os.path.join(path_to_ill_val, "*.avi")):
+    ill_val_files.append(file)
+
+print("Healthy Val Files:", healthy_val_files)
+print("Ill Val Files:", ill_val_files)
 
 background_subtraction_method = "opencv,rect"
 
