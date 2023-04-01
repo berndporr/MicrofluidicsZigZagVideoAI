@@ -14,37 +14,61 @@ import tensorflow as tf
 
 class AVIfile:
 
-  def __init__(self, video_path, label_name, clip_length, crop_rect = False, frame_step = 1, subtract_background = ""):
+  def __init__(self, avi_paths, label_name, clip_length=None, crop_rect = False, frame_step = 1, subtract_background = "", whole_video_clip=False):
     """
     Wrapper for the raw AVI file.
-    video_path: path to the AVI video clip
+    avi_paths: paths to the AVI video clips
     label_name: label of the dataset, for example healthy or ill
     clip_length: the number of frames per clip
     crop_rect: rectangle to crop the frames
     frame_step: defines how many frames to skip to reduce the amount of data
     frames2ret: frames per clip to return if not the whole clip_length is taken
     subtract_background: if background subtraction should be performed or not
+    whole_video_clip: if True, treat the entire video as a single clip
     """
     if len(subtract_background) > 2:
       if not (("opencv" in subtract_background) or ("split" in subtract_background)):
         print("Fatal: unknown background subtraction method.")
         quit()
-    self.clip_length = clip_length
+    #self.clip_length = clip_length
+    self.avi_paths=avi_paths
     self.label_name = label_name
     self.crop_rect = crop_rect
     self.frame_step = frame_step
     self.subtract_background = subtract_background
-    self.frames2ret = clip_length
-    self.name = os.path.basename(video_path)
-    self.src = cv2.VideoCapture(str(video_path))
+    #self.frames2ret = clip_length
+    self.name = os.path.basename(avi_paths)
+    self.src = cv2.VideoCapture(str(avi_paths))
     if not self.src:
-      print("Could not open:",video_path)
+      print("Could not open:",avi_paths)
       quit()
     self.video_length = int(self.src.get(cv2.CAP_PROP_FRAME_COUNT))
     self.width  = int(self.src.get(cv2.CAP_PROP_FRAME_WIDTH))   # float `width`
     self.height = int(self.src.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
-    print("{} opened: {} frames, {} clips at {}x{}, bgsub={}".format(video_path,self.video_length,self.get_number_of_clips(),
-    self.width,self.height,self.subtract_background))
+
+    if whole_video_clip:
+      # Treat the entire video as a single clip
+      self.clip_length = self.video_length
+      self.frames2ret = self.video_length
+      self.clips = [(0, self.video_length)]
+      print("{} opened: {} frames, 1 clip at {}x{}, bgsub={}".format(
+        avi_paths, self.video_length, self.width, self.height, self.subtract_background))
+    else:
+      self.clip_length = clip_length
+      self.frames2ret = clip_length
+      self.clips = self.get_clips()
+      print("{} opened: {} frames, {} clips at {}x{}, bgsub={}".format(
+        avi_paths, self.video_length, len(self.clips), self.width, self.height, self.subtract_background))
+
+  def get_clips(self):
+    clips = []
+    for start_frame in range(0, self.video_length, self.clip_length):
+      end_frame = min(start_frame + self.clip_length, self.video_length)
+      clips.append((start_frame, end_frame))
+    return clips
+
+    #print("{} opened: {} frames, {} clips at {}x{}, bgsub={}".format(avi_paths,self.video_length,self.get_number_of_clips(),
+    #self.width,self.height,self.subtract_background))
 
   def calcMovement(self,frames):
     m = []
@@ -171,7 +195,7 @@ class AVIpool:
     self.aviFiles = []
     self.numOfClips = 0
     for p in video_paths:
-      avi = AVIfile(p,label_name, clip_length, crop_rect = crop_rect, frame_step = frame_step, subtract_background = subtract_background)
+      avi = AVIfile(p,label_name, clip_length, crop_rect = crop_rect, frame_step = frame_step, subtract_background = subtract_background, whole_video_clip=False)
       self.aviFiles.append(avi)
       self.numOfClips += avi.get_number_of_clips()
 
@@ -198,9 +222,10 @@ class FrameGenerator:
     self.max_clips = max_clips
 
   def __call__(self):
+    global clip_index
     pairs = []
-    for label_index in range(len(self.avifiles)):
-      for clip_index in range(self.avifiles[label_index].get_number_of_clips()):
+    for label_index, avi_file in enumerate(self.avifiles):
+      for clip_index in range(avi_file.get_number_of_clips()):
         pair = (label_index,clip_index)
         pairs.append(pair)
 

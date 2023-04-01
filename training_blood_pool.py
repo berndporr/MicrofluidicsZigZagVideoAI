@@ -11,18 +11,25 @@ import matplotlib.animation as animation
 #devices = tf.config.list_physical_devices('GPU')
 #tf.config.experimental.set_memory_growth(devices[0],True)
 
-##LEARN
-paths_to_healthy_learn = ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused",
-                           "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_overfocused2ticks",
-                           "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_underfocused2ticks",
-                           "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
-                           "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
-                           "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"]
+print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 
-paths_to_ill_learn = ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent",
-                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused",
-                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
-                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"]
+
+
+
+
+##LEARN
+paths_to_healthy_learn = [#"/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused",
+                           #"/data/RBC_Phantom_60xOlympus/Donor_1/Native5_overfocused2ticks",
+                           #"/data/RBC_Phantom_60xOlympus/Donor_1/Native5_underfocused2ticks"]
+                           "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused"]
+                           #"/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
+                           #"/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"]
+
+paths_to_ill_learn = [#"/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent",
+                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused"]
+                       #"/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
+                       #"/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"]
 
 # Create empty lists to store the file paths
 healthy_learn_files = []
@@ -39,8 +46,8 @@ for path in paths_to_ill_learn:
         if file.endswith('.avi'):
             ill_learn_files.append(os.path.join(path, file))
 
-print("Healthy Train Files:", healthy_learn_files)
-print("Ill Train Files:", ill_learn_files)
+# print("Healthy Train Files:", healthy_learn_files)
+# print("Ill Train Files:", ill_learn_files)
 
 ##VALIDATION
 path_to_healthy_val = "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused"
@@ -56,13 +63,13 @@ ill_val_files = []
 for file in glob.glob(os.path.join(path_to_ill_val, "*.avi")):
     ill_val_files.append(file)
 
-print("Healthy Val Files:", healthy_val_files)
-print("Ill Val Files:", ill_val_files)
+# print("Healthy Val Files:", healthy_val_files)
+# print("Ill Val Files:", ill_val_files)
 
 background_subtraction_method = "opencv,rect"
 
 crop = [[100,0],[500,120]]
-clip_len = 60
+clip_len = 250
 
 avi_healthy_learn = framegenerator.AVIpool(
   paths_to_healthy_learn,
@@ -78,7 +85,9 @@ avi_ill_learn  = framegenerator.AVIpool(
   clip_length = clip_len,
   subtract_background = background_subtraction_method)
 
-avi_files_learn = [avi_healthy_learn,avi_ill_learn]
+avi_healthy_learn_files = [framegenerator.AVIfile(path, "Healthy", crop_rect=crop, clip_length=clip_len, subtract_background=background_subtraction_method) for path in healthy_learn_files]
+avi_ill_learn_files = [framegenerator.AVIfile(path, "Ill", crop_rect=crop, clip_length=clip_len, subtract_background=background_subtraction_method) for path in ill_learn_files]
+avi_files_learn = avi_healthy_learn_files + avi_ill_learn_files
 
 # Create the training set
 output_signature = (tf.TensorSpec(shape = (None, None, None, 3), dtype = tf.float32),
@@ -106,7 +115,9 @@ avi_ill_val  = framegenerator.AVIfile(
   clip_length = clip_len,
   subtract_background = background_subtraction_method)
 
-avi_files_val = [avi_healthy_val,avi_ill_val]
+avi_healthy_val_files = [framegenerator.AVIfile(path, "Healthy", crop_rect=crop, clip_length=clip_len, subtract_background=background_subtraction_method) for path in healthy_val_files]
+avi_ill_val_files = [framegenerator.AVIfile(path, "Ill", crop_rect=crop, clip_length=clip_len, subtract_background=background_subtraction_method) for path in ill_val_files]
+avi_files_val = avi_healthy_val_files + avi_ill_val_files
 
 fg_val = framegenerator.FrameGenerator(avi_files_val, training=True)
 val_ds = tf.data.Dataset.from_generator(fg_val,
@@ -123,8 +134,8 @@ print(f'Shape of validation labels: {val_labels.shape}')
 
 AUTOTUNE = tf.data.AUTOTUNE
 
-train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size = AUTOTUNE)
-val_ds = val_ds.cache().shuffle(1000).prefetch(buffer_size = AUTOTUNE)
+train_ds = train_ds.cache().shuffle(20).prefetch(buffer_size = AUTOTUNE)
+val_ds = val_ds.cache().shuffle(20).prefetch(buffer_size = AUTOTUNE)
 
 train_ds = train_ds.batch(2)
 val_ds = val_ds.batch(2)
@@ -159,7 +170,7 @@ model.compile(optimizer = 'adam',
               metrics=['accuracy'])
 
 model.fit(train_ds, 
-          epochs = 10,
+          epochs = 2,
           validation_data = val_ds,
           callbacks = tf.keras.callbacks.EarlyStopping(patience = 2, monitor = 'val_loss'))
 
