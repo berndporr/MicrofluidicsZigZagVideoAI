@@ -14,6 +14,7 @@ from keras.optimizers import Adam
 
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
+
 def setup_gpu_memory_growth() -> None:
     physical_devices = tf.config.list_physical_devices('GPU')
     if physical_devices:
@@ -21,13 +22,15 @@ def setup_gpu_memory_growth() -> None:
 
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
+
 setup_gpu_memory_growth()
+
 
 class BackgroundSubtractor:
     def __init__(self):
         self.bg_model = None
         self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=30, varThreshold=10)
-        #createBackgroundSubtractorKNN(history=50, dist2Threshold=800)
+        # createBackgroundSubtractorKNN(history=50, dist2Threshold=800)
         self.previous_fg_mask = None
         # decrease history, increase threshold
 
@@ -37,7 +40,7 @@ class BackgroundSubtractor:
 
         # Apply Gaussian blur to remove noise
         gray_frame = cv2.GaussianBlur(gray_frame, (3, 3), 0)
-        #larger kernal = aggressive smoothing
+        # larger kernal = aggressive smoothing
 
         # Apply background subtraction using temporal difference
         fg_mask = self.bg_subtractor.apply(gray_frame)
@@ -85,7 +88,9 @@ class BackgroundSubtractor:
         # Return the foreground image
         return fg
 
+
 bg_subtractor = BackgroundSubtractor()
+
 
 class FrameGenerator:
     def __init__(self, batch_size: int = 16, shuffle: bool = True, target_shape: Tuple[int, int, int] = (224, 224, 3)):
@@ -149,7 +154,9 @@ class FrameGenerator:
             batch = batch.astype(np.float32) / 255.0
             yield batch
 
+
 frame_gen = FrameGenerator()
+
 
 def process_videos(paths, bg_subtractor, num_videos=int, skip_frames=0):
     processed_videos = []
@@ -184,7 +191,7 @@ def process_videos(paths, bg_subtractor, num_videos=int, skip_frames=0):
                         frame_resized = FrameGenerator.resize_frame(fg, target_shape=(224, 224, 3),
                                                                     bg_subtractor=bg_subtractor)
 
-                        #Save the frame after resizing to disk
+                        # Save the frame after resizing to disk
                         # cv2.imwrite(
                         #     f"/home/raj/PycharmProjects/droplets_video/save/{file[:-4]}_{frame_count}_resized.jpg",
                         #     frame_resized)
@@ -207,19 +214,24 @@ def process_videos(paths, bg_subtractor, num_videos=int, skip_frames=0):
             # Stack the video frames to form a 3D tensor of shape (num_frames, height, width, channels)
             video_tensor = np.stack(video_frames)
             processed_videos.append(video_tensor)
+
     return np.concatenate(processed_videos, axis=0)
 
-healthy_train_paths = ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused"]
+
+healthy_train_paths = ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
+                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused"]
 healthy_train_data_resized = process_videos(healthy_train_paths, bg_subtractor, num_videos=10)
 
-ill_train_paths = ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent"]
+ill_train_paths = ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused",
+                   "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused"]
 ill_train_data_resized = process_videos(ill_train_paths, bg_subtractor, num_videos=10)
 
-healthy_val_paths = ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused"]
+healthy_val_paths = ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"]
 healthy_val_data_resized = process_videos(healthy_val_paths, bg_subtractor, num_videos=5)
 
-ill_val_paths = ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused"]
+ill_val_paths = ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"]
 ill_val_data_resized = process_videos(ill_val_paths, bg_subtractor, num_videos=5)
+
 
 def train_model(model, healthy_train_data, ill_train_data, healthy_val_data, ill_val_data, epochs, batch_size):
     train_losses = []
@@ -238,24 +250,25 @@ def train_model(model, healthy_train_data, ill_train_data, healthy_val_data, ill
 
             model.train_on_batch(x_batch, y_batch)
 
-        train_loss, train_acc = model.evaluate(x=np.concatenate([healthy_train_data, ill_train_data], axis=0),
-                                               y=np.concatenate([np.zeros(healthy_train_data.shape[0]),
-                                                                 np.ones(ill_train_data.shape[0])], axis=0))
+        train_loss, train_acc = model.evaluate(x=np.concatenate([healthy_train_data_resized, ill_train_data_resized], axis=0),
+                                               y=np.concatenate([np.zeros(healthy_train_data_resized.shape[0]),
+                                                                 np.ones(ill_train_data_resized.shape[0])], axis=0))
         train_losses.append(train_loss)
         train_accuracies.append(train_acc)
-        print(f"Train loss: {train_loss:.4f}")
-        print(f"Train accuracy: {train_acc:.4f}")
+        print(f"Train loss: {train_loss:.1f}")
+        print(f"Train accuracy: {train_acc:.1f}")
 
-        val_data = np.concatenate([healthy_val_data, ill_val_data], axis=0)
-        val_labels = np.concatenate([np.zeros(healthy_val_data.shape[0]), np.ones(ill_val_data.shape[0])], axis=0)
+        val_data = np.concatenate([healthy_val_data_resized, ill_val_data_resized], axis=0)
+        val_labels = np.concatenate([np.zeros(healthy_val_data_resized.shape[0]), np.ones(ill_val_data_resized.shape[0])], axis=0)
 
         val_loss, val_acc = model.evaluate(x=val_data, y=val_labels)
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
-        print(f"Validation loss: {val_loss:.4f}")
-        print(f"Validation accuracy: {val_acc:.4f}")
+        print(f"Validation loss: {val_loss:.1f}")
+        print(f"Validation accuracy: {val_acc:.1f}")
 
     return train_losses, train_accuracies, val_losses, val_accuracies, model
+
 
 # Load pre-trained EfficientNetB0 model
 base_model = EfficientNetB0(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
@@ -279,7 +292,7 @@ model = Model(inputs=base_model.input, outputs=predictions)
 model.compile(optimizer=Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
 
 # Train the model
-epochs = 5
+epochs = 10
 batch_size = 32
 
 train_losses, train_accuracies, val_losses, val_accuracies, trained_model = train_model(model,
@@ -287,18 +300,25 @@ train_losses, train_accuracies, val_losses, val_accuracies, trained_model = trai
                                                                                         ill_train_data_resized,
                                                                                         healthy_val_data_resized,
                                                                                         ill_val_data_resized,
-                                                                                        epochs, batch_size)
+                                                                                        epochs,
+                                                                                        batch_size)
 
-healthy_val_labels = np.zeros(len(healthy_val_data_resized))
-ill_val_labels = np.ones(len(ill_val_data_resized))
+# print("")
+# print(f"Train losses: {train_losses}")
+# print(f"Train accuracies: {train_accuracies}")
+# print(f"Validation losses: {val_losses}")
+# print(f"Validation accuracies: {val_accuracies}")
 
-val_data_resized = np.concatenate((healthy_val_data_resized, ill_val_data_resized), axis=0)
-val_labels = np.concatenate((healthy_val_labels, ill_val_labels), axis=0)
+# healthy_val_labels = np.zeros(len(healthy_val_data_resized))
+# ill_val_labels = np.ones(len(ill_val_data_resized))
+#
+# val_data_resized = np.concatenate((healthy_val_data_resized, ill_val_data_resized), axis=0)
+# val_labels = np.concatenate((healthy_val_labels, ill_val_labels), axis=0)
 
-# Evaluate the model on the test set
-loss, accuracy = model.evaluate(val_data_resized)
-print('Val loss:', loss)
-print('Val accuracy:', accuracy)
+# # Evaluate the model on the test set
+# loss, accuracy = model.evaluate(val_data_resized)
+# print('Val loss:', loss)
+# print('Val accuracy:', accuracy)
 
 # # Print model summary and trainable parameters
 # print(trained_model.summary())
