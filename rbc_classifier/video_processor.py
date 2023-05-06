@@ -6,6 +6,7 @@ from background_subtractor import BackgroundSubtractor
 import numpy as np
 import os
 import tensorflow as tf
+
 import time
 
 
@@ -41,18 +42,21 @@ def get_videos(path_list, label, num_videos):
     return video_paths, video_labels
 
 
-def process_dataset (healthy_data, ill_data, healthy_labels, ill_labels):
-    # Process the videos.
-    healthy_data_processed = process_videos(healthy_data)
-    ill_data_processed = process_videos(ill_data)
+def process_dataset(native_videos, modified_videos, native_labels, modified_labels):
+    # Process the native videos.
+    processed_native_videos = process_videos(native_videos)
+    processed_modified_videos = process_videos(modified_videos)
 
-    # Concatenate the healthy and ill data.
-    processed_videos = np.concatenate([healthy_data_processed, ill_data_processed], axis=0)
+    # Concatenate the native and modified data.
+    processed_videos = np.concatenate([processed_native_videos, processed_modified_videos], axis=0)
     processed_videos = processed_videos.astype(np.float32) / 255.0
     processed_videos = tf.data.Dataset.from_tensor_slices(processed_videos)
 
+    # Print processed_videos shape
+    print(processed_videos.element_spec)
+
     # Use the provided labels.
-    labels = np.concatenate([healthy_labels, ill_labels], axis=0)
+    labels = np.concatenate([native_labels, modified_labels], axis=0)
     labels = labels.astype(np.int16)
     labels = tf.data.Dataset.from_tensor_slices(labels)
 
@@ -60,13 +64,13 @@ def process_dataset (healthy_data, ill_data, healthy_labels, ill_labels):
     return processed_videos, labels
 
 
-def process_videos(video_paths_labels):
+def process_videos(videos):
     # Initialize variables.
     processed_videos = []
-    bg_subtractor = BackgroundSubtractor()
+    bgSub = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=10)
 
-    # Iterate over the video paths and labels.
-    for video_path in tqdm(video_paths_labels, desc='Processing videos', position=0, leave=True):
+    # Iterate over the video paths.
+    for video_path in tqdm(videos, desc='Processing videos', position=0, leave=True):
         # Open the video file.
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
@@ -82,18 +86,30 @@ def process_videos(video_paths_labels):
         # Iterate over the frames in the video.
         for frame_count in range(num_frames):
             ret, frame = cap.read()
+
+            # Skip the frame if it could not be read.
             if not ret or frame.size == 0:
                 break
 
             # Apply background subtraction to the frame.
-            if 40 < frame_count <= 160:
-                preprocessed_frame = bg_subtractor.apply(frame)
+            fgMask = bgSub.apply(frame)
 
-                # Skip the first and last 10 frames.
-                if 50 < frame_count <= 150:
-                    video_frames.append(preprocessed_frame)
-                    # cv2.imwrite(f'/home/raj/PycharmProjects/frames/
-                    # {label}_{frame_count:03}_preprocessed.jpg', preprocessed_frame)
+            # Convert the foreground mask to RGB.
+            mask = cv2.cvtColor(fgMask, cv2.COLOR_GRAY2BGR)
+
+            # Apply the mask to the frame.
+            processed_frame = cv2.bitwise_and(frame, mask)
+
+            # Skip the first and last 10 frames.
+            if 50 < frame_count <= 150:
+                # Skip every other frame.
+                if frame_count % 2 == 0:
+                    video_frames.append(processed_frame)
+
+                    # Save the frame.
+                    cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_processed.jpg', processed_frame)
+
+
 
         # Close the video file.
         cap.release()
@@ -103,9 +119,11 @@ def process_videos(video_paths_labels):
             continue
 
         # Stack the frames into a NumPy array.
+        video_frames = np.array(video_frames)[..., [2, 1, 0]]
+        video_frames = np.maximum(video_frames, 0)
         processed_videos.append(np.stack(video_frames, axis=0))
 
     video_data = processed_videos
 
-    # Return the processed videos, labels, number of frames, and labels.
+    # Return the processed videos.
     return video_data

@@ -73,8 +73,8 @@ def main(argv):
                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
                       "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"]
 
-    # healthy_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/healthy"]
-    # ill_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/mod2"]
+    # native_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/native"]
+    # modified_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/modified2"]
 
     # Select videos for training and validation sets
     native_videos, native_labels = get_videos(native_paths, label=1, num_videos=videos // 2)
