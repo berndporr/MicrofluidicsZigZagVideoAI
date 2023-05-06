@@ -2,12 +2,9 @@ import logging
 from tqdm import tqdm
 import cv2
 import random
-from background_subtractor import BackgroundSubtractor
 import numpy as np
 import os
 import tensorflow as tf
-
-import time
 
 
 def get_videos(path_list, label, num_videos):
@@ -52,13 +49,15 @@ def process_dataset(native_videos, modified_videos, native_labels, modified_labe
     processed_videos = processed_videos.astype(np.float32) / 255.0
     processed_videos = tf.data.Dataset.from_tensor_slices(processed_videos)
 
-    # Print processed_videos shape
-    print(processed_videos.element_spec)
+    # # Print processed_videos shape
+    # print(processed_videos.element_spec)
 
     # Use the provided labels.
     labels = np.concatenate([native_labels, modified_labels], axis=0)
     labels = labels.astype(np.int16)
     labels = tf.data.Dataset.from_tensor_slices(labels)
+    # # Print processed_videos shape
+    # print(labels.element_spec)
 
     # Return the processed data and labels.
     return processed_videos, labels
