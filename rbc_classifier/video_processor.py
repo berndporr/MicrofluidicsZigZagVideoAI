@@ -56,6 +56,7 @@ def process_dataset(native_videos, modified_videos, native_labels, modified_labe
     labels = np.concatenate([native_labels, modified_labels], axis=0)
     labels = labels.astype(np.int16)
     labels = tf.data.Dataset.from_tensor_slices(labels)
+
     # # Print processed_videos shape
     # print(labels.element_spec)
 
@@ -105,10 +106,8 @@ def process_videos(videos):
                 if frame_count % 2 == 0:
                     video_frames.append(processed_frame)
 
-                    # Save the frame.
-                    cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_processed.jpg', processed_frame)
-
-
+                    # # Save the frame.
+                    # cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_processed.jpg', processed_frame)
 
         # Close the video file.
         cap.release()
