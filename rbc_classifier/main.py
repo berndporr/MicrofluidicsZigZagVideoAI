@@ -15,21 +15,18 @@ TARGET_SHAPE = (132, 800, 3)
 
 def main(argv):
     # Set default values for parameters
-    train_videos = 18
-    val_videos = 4
+    videos = 10
     epochs = 10
     batch_size = 1
     # Get parameters from command line
     try:
-        opts, args = getopt.getopt(argv, "t:v:e:b:", ["train_videos=", "val_videos=", "epochs=", "batch_size="])
+        opts, args = getopt.getopt(argv, "v:e:b:", ["videos=", "epochs=", "batch_size="])
     except getopt.GetoptError:
-        print("main.py -t <train_videos> -v <val_videos> -e <epochs> -b <batch_size>")
+        print("main.py -v <videos> -e <epochs> -b <batch_size>")
         sys.exit(2)
 
     for opt, arg in opts:
-        if opt in ("-t", "--train_videos"):
-            train_videos = int(arg)
-        elif opt in ("-v", "--val_videos"):
+        if opt in ("-v", "--videos"):
             val_videos = int(arg)
         elif opt in ("-e", "--epochs"):
             epochs = int(arg)
@@ -59,51 +56,39 @@ def main(argv):
     if __name__ == '__main__':
         main()
 
-    print(f"{int(train_videos)} training videos")
-    print(f"{int(val_videos)} validation videos")
+    print(f"{int(videos)} videos will be used for training and validation")
     print("")
     # time.sleep(1)
 
     # Define the healthy and ill paths
-    healthy_paths = ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused",
-                     "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_overfocused2ticks",
-                     "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_underfocused2ticks",
-                     "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
-                     "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
-                     "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"]
+    native_paths = ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused",
+                    "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_overfocused2ticks",
+                    "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_underfocused2ticks",
+                    "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
+                    "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
+                    "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"]
 
-    ill_paths = ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent",
-                 "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused",
-                 "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
-                 "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"]
+    modified_paths = ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent",
+                      "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused",
+                      "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
+                      "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"]
 
     # healthy_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/healthy"]
     # ill_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/mod2"]
 
     # Select videos for training and validation sets
-    healthy_train_paths, healthy_train_labels = get_videos(healthy_paths, label=1, num_videos=train_videos // 2)
-    ill_train_paths, ill_train_labels = get_videos(ill_paths, label=0, num_videos=train_videos // 2)
+    native_videos, native_labels = get_videos(native_paths, label=1, num_videos=videos // 2)
+    modified_videos, modified_labels = get_videos(modified_paths, label=0, num_videos=videos // 2)
 
-    healthy_val_paths, healthy_val_labels = get_videos(healthy_paths, label=1, num_videos=val_videos // 2)
-    ill_val_paths, ill_val_labels = get_videos(ill_paths, label=0, num_videos=val_videos // 2)
+    # Process data
+    videos_tensor, labels_tensor = process_dataset(native_videos, modified_videos,
+                                                   native_labels, modified_labels)
 
-    # Process the data
-    t_videos, t_labels = process_dataset(healthy_train_paths, ill_train_paths,
-                                            healthy_train_labels, ill_train_labels)
-
-    v_videos, v_labels = process_dataset(healthy_val_paths, ill_val_paths,
-                                        healthy_val_labels, ill_val_labels)
-
-    # Convert to tensors
-    train_ds = tf.data.Dataset.zip((t_videos, t_labels))
-    train_ds = train_ds.shuffle(buffer_size=1000)
-    train_ds = train_ds.batch(batch_size)
-    train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
-
-    val_ds = tf.data.Dataset.zip((v_videos, v_labels))
-    val_ds = val_ds.shuffle(buffer_size=1000)
-    val_ds = val_ds.batch(batch_size)
-    val_ds = val_ds.prefetch(tf.data.experimental.AUTOTUNE)
+    # Process tensors
+    dataset = tf.data.Dataset.zip((videos_tensor, labels_tensor))
+    dataset = dataset.shuffle(buffer_size=1000)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
 
     # ----------------------------------- #
 
@@ -124,7 +109,7 @@ def main(argv):
     time.sleep(5)
 
     # Train the model
-    history = model.fit(train_ds, epochs=epochs, batch_size=batch_size, verbose=1, validation_data=val_ds)
+    history = model.fit(dataset, epochs=epochs, batch_size=batch_size, verbose=1, validation_split=0.2)
 
     print("")
     accuracy = history.history['accuracy'][-1] * 100
