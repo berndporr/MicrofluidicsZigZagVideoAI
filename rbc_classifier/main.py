@@ -7,16 +7,16 @@ import tensorflow as tf
 from keras.models import Sequential
 from keras.applications import EfficientNetB0
 from keras.callbacks import EarlyStopping
-from keras.losses import SparseCategoricalCrossentropy
-from keras.layers import Rescaling, TimeDistributed, Dropout, Dense, GlobalAveragePooling3D
+from keras.losses import SparseCategoricalCrossentropy, BinaryCrossentropy
+from keras.layers import Rescaling, TimeDistributed, Dropout, Dense, GlobalAveragePooling3D, Flatten, MaxPooling3D, BatchNormalization
 
 
 def main(argv):
     # Set default values for parameters
     videos = 100
-    train_index = int(videos * 0.4)
-    val_index = int(videos + (videos * 0.1))
-    epochs = 50
+    train_index = int(videos * 0.45)
+    val_index = int(videos + (videos * 0.5))
+    epochs = 30
     batch_size = 1
 
     # Get parameters from command line
@@ -63,7 +63,10 @@ def main(argv):
     print("")
     # time.sleep(1)
 
-    # Define the healthy and ill paths
+    # # Define the healthy and ill paths
+    # native_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/nat"]
+    # modified_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/mod"]
+
     native_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/native_mix"]
     modified_paths = ["/home/raj/PycharmProjects/droplets_video/rbc_classifier/mod_mix"]
 
@@ -74,7 +77,7 @@ def main(argv):
     #                 "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
     #                 "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"]
     #
-    # modified_paths = ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent", 15
+    # modified_paths = ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent",
     #                   "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused",
     #                   "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
     #                   "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"]
@@ -122,23 +125,35 @@ def main(argv):
     base_model = EfficientNetB0(include_top=False)
     base_model.trainable = False
 
+    # model.summary()
+
     # Create a sequential model.
     model = Sequential([
+        # Rescaling the input to the range [0, 1].
         Rescaling(scale=255),
+        # TimeDistributed wrapper to apply the same transformation to each sample in the batch.
         TimeDistributed(base_model),
+        # Dense layer to output the probability of each class.
         Dense(10),
+        # Pooling layer to reduce the dimensionality of the input.
         GlobalAveragePooling3D()
     ])
 
     # Compile the model.
     model.compile(optimizer='adam',
-                  loss=SparseCategoricalCrossentropy(from_logits=True),
+                  loss=SparseCategoricalCrossentropy(from_logits = True),
                   metrics=['accuracy'])
 
     # Fit the model to the training dataset and validation data.
     model.fit(train_dataset, epochs=epochs, batch_size=batch_size,
               validation_data=val_dataset,
-              callbacks=EarlyStopping(patience=5, monitor='val_loss'))
+              callbacks=EarlyStopping(patience=3, monitor='val_loss'))
+
+    # # Load saved weights if they exist.
+    # model.load_weights("/home/raj/PycharmProjects/droplets_video/rbc_classifier/weights")
+    #
+    # # Save the weights of the model.
+    # model.save_weights("/home/raj/PycharmProjects/droplets_video/rbc_classifier/weights")
 
     # # Evaluate the model on the test data
     # test_loss, test_acc = model.evaluate(test_dataset)
