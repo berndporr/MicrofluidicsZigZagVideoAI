@@ -103,7 +103,7 @@ def process_videos(videos):
             # Skip the first and last 10 frames.
             if 50 < frame_count <= 150:
                 # Skip every other frame.
-                if frame_count % 2 == 0:
+                if frame_count % 10 == 0:
                     video_frames.append(processed_frame)
 
                     # # Save the frame.
