@@ -1,39 +1,49 @@
 import cv2
-import numpy as np
-from background_subtractor import BackgroundSubtractor
+import logging
 
-# Path to the video file
 video_path = '/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused/1310_03311.avi'
 
-# Create a background subtractor object
-bg_subtractor = BackgroundSubtractor()
+video = [video_path]
 
-# Open the video file
-cap = cv2.VideoCapture(video_path, cv2.CAP_ANY)
+bgSub = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=10)
 
-# Check if the video file was successfully opened
-if not cap.isOpened():
-    print("Error opening video file")
-    exit()
+for video_path in video:
+    cap = cv2.VideoCapture(video_path)
 
-while True:
-    # Read a frame from the video file
-    ret, frame = cap.read()
+    if not cap.isOpened():
+        logging.warning(f"Could not open video file: {video_path}")
+        exit()
 
-    if not ret:
-        break
+    # Get the number of frames in the video.
+    num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    # Apply background subtraction to the frame
-    fg = bg_subtractor.apply(frame)
+    # Initialize the video frames list.
+    video_frames = []
 
-    # Display the original frame and the foreground mask
-    cv2.imshow('Original', frame)
-    cv2.imshow('Foreground mask', fg)
+    # Iterate over the frames in the video.
+    for frame_count in range(num_frames):
+        ret, frame = cap.read()
 
-    # Wait for a key press
-    if cv2.waitKey(1) == ord('q'):
-        break
+        # Skip the frame if it could not be read.
+        if not ret or frame.size == 0:
+            break
 
-# Release the video capture object and close all windows
-cap.release()
+        # Apply background subtraction to the frame.
+        fgMask = bgSub.apply(frame)
+
+        # Convert the foreground mask to RGB.
+        mask = cv2.cvtColor(fgMask, cv2.COLOR_GRAY2BGR)
+
+        # Apply the mask to the frame.
+        processed_frame = cv2.bitwise_and(frame, mask)
+
+        # Display processed frame.
+        cv2.imshow('Processed video', processed_frame)
+
+    # Close the video file.
+    cap.release()
+
+# Wait for keypress and exit.
+cv2.waitKey(0)
 cv2.destroyAllWindows()
+
