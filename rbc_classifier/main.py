@@ -32,7 +32,7 @@ def main(argv):
 
     if option == "ALL":
         videos = 300
-        epochs = 300
+        epochs = 500
     elif option == "FD":
         videos = 100
         epochs = 100
@@ -40,8 +40,8 @@ def main(argv):
         videos = 100
         epochs = 100
     elif option == "TEST":
-        videos = 20
-        epochs = 10
+        videos = 30
+        epochs = 20
 
     train_index = int(videos * 0.5)
     val_index = int(train_index + (videos * 0.1))
