@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 def main(argv):
     videos = 0
     epochs = 0
-    option = "TEST"  # Initialize option with the default value
+    option = "MIX"  # Initialize option with the default value
 
     # Get parameters from command line
     try:
@@ -30,13 +30,16 @@ def main(argv):
         if opt == "--option":
             option = arg
 
-    if option == "ALL":
+    if option == "MIX":
         videos = 300
-        epochs = 500
-    elif option == "FD":
+        epochs = 150
+    elif option == "FA":
         videos = 100
         epochs = 100
     elif option == "DA":
+        videos = 100
+        epochs = 100
+    elif option == "GA":
         videos = 100
         epochs = 100
     elif option == "TEST":
@@ -44,11 +47,11 @@ def main(argv):
         epochs = 20
 
     train_index = int(videos * 0.5)
-    val_index = int(train_index + (videos * 0.1))
-    test_index = int(val_index + (videos * 0.2))
+    val_index = int(train_index + (videos * 0.2))
+    test_index = int(val_index + (videos * 0.1))
     video_index = int((train_index + val_index + test_index) // 2)
 
-    # Disable all logging messages
+    # Disable logging messages
     logging.disable(logging.CRITICAL)
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
@@ -77,8 +80,7 @@ def main(argv):
     print(f"{int(videos)} videos and {epochs} epochs chosen")
     print("")
 
-    # Define the healthy and ill paths
-
+    # Define the native and modified paths
     native_paths = [
         ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused",
          "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_overfocused2ticks",
@@ -86,9 +88,12 @@ def main(argv):
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"],
-        ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused",
-         "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_overfocused2ticks",
-         "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_underfocused2ticks"],
+        ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"],
+        ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"],
         ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"],
@@ -96,25 +101,30 @@ def main(argv):
     ]
 
     modified_paths = [
-        ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent",
+        ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay0.74wtPerc_2_IF",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay0.74wtPerc_OF",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"],
-        ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent"],
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_GA1percent_IF",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_GA1percent_OF"],
+        ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay0.74wtPerc_2_IF",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay0.74wtPerc_OF"],
         ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_focused",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"],
+        ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_GA1percent_IF",
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_GA1percent_OF"],
         ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent"]
     ]
 
     # Validate the chosen option
-    if option not in ["ALL", "FD", "DA", "TEST"]:
-        print("Invalid option. Choosing the default option.")
-        option = "ALL"
+    if option not in ["MIX", "FA", "DA", "GA", "TEST"]:
+        option = "MIX"
 
     # Get the selected paths based on the chosen option
-    selected_native_paths = native_paths[["ALL", "FD", "DA", "TEST"].index(option)]
-    selected_modified_paths = modified_paths[["ALL", "FD", "DA", "TEST"].index(option)]
+    selected_native_paths = native_paths[["MIX", "FA", "DA", "GA", "TEST"].index(option)]
+    selected_modified_paths = modified_paths[["MIX", "FA", "DA", "GA", "TEST"].index(option)]
 
     native_videos, native_labels = get_videos(selected_native_paths, label=1, num_videos=video_index)
     modified_videos, modified_labels = get_videos(selected_modified_paths, label=0, num_videos=video_index)
@@ -128,6 +138,21 @@ def main(argv):
 
     test_native_videos, test_native_labels = native_videos[val_index:test_index], native_labels[val_index:test_index]
     test_modified_videos, test_modified_labels = modified_videos[val_index:test_index], modified_labels[val_index:test_index]
+
+    # Save the videos and labels to files
+    def save_video_labels_to_file(filename, video_paths, labels):
+        with open(filename, "w") as file:
+            for video_path, label in zip(video_paths, labels):
+                file.write(f"{video_path},{label}\n")
+
+    # Save train videos and labels
+    save_video_labels_to_file("train_videos.txt", train_native_videos + train_modified_videos, train_native_labels + train_modified_labels)
+
+    # Save validation videos and labels
+    save_video_labels_to_file("val_videos.txt", val_native_videos + val_modified_videos, val_native_labels + val_modified_labels)
+
+    # Save test videos and labels
+    save_video_labels_to_file("test_videos.txt", test_native_videos + test_modified_videos, test_native_labels + test_modified_labels)
 
     # Split the dataset into train, validation, and test sets.
     train_videos_tensor, train_labels_tensor = process_dataset(train_native_videos, train_modified_videos,

@@ -1,7 +1,7 @@
 import cv2
 import logging
 
-video_path = '/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent/1310_07683.avi'
+video_path = '/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent/1310_07853.avi'
 
 video = [video_path]
 
@@ -34,9 +34,6 @@ for video_path in video:
         # Convert the foreground mask to RGB.
         mask = cv2.cvtColor(fgMask, cv2.COLOR_GRAY2BGR)
 
-        #Save background mask
-
-
         # Apply the mask to the frame.
         processed_frame = cv2.bitwise_and(frame, mask)
 
@@ -47,8 +44,10 @@ for video_path in video:
                 video_frames.append(processed_frame)
 
                 # Save the frame.
-                cv2.imwrite(f'/home/raj/PycharmProjects/frames/original_{frame_count:03}.jpg', frame)
-                cv2.imwrite(f'/home/raj/PycharmProjects/frames/processed_{frame_count:03}.jpg', processed_frame)
+                cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_original.jpg', frame)
+                cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_processed.jpg', processed_frame)
+                cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_fg_mask.png', fgMask)
+
 
         # # Display processed frame.
         # cv2.imshow('Processed video', processed_frame)

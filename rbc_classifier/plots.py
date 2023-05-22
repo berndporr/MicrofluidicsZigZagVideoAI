@@ -1,14 +1,24 @@
+import os
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import tensorflow as tf
 import json
 
-save_directory = '/home/raj/PycharmProjects/frames/'
+# Create the save directory path
+save_directory = os.path.join(os.getcwd(), 'frames')
+
+# Create the "frames" folder if it doesn't exist
+if not os.path.exists(save_directory):
+    os.makedirs(save_directory)
 
 
 def save_values_to_json(values_dict, json_file_path):
-    with open(json_file_path, 'w') as json_file:
+    # Create the full file path within the save directory
+    file_path = os.path.join(save_directory, json_file_path)
+
+    # Save the values to a JSON file
+    with open(file_path, 'w') as json_file:
         json.dump(values_dict, json_file)
 
 
@@ -40,7 +50,7 @@ def plot_accuracy_and_loss(training_accuracy, validation_accuracy, training_loss
     plt.show()
 
     # Save the plot as an EPS file
-    plt.savefig(save_directory + 'accuracy_and_loss_plot.eps', format='eps')
+    plt.savefig(os.path.join(save_directory, 'accuracy_and_loss_plot.eps'), format='eps')
     plt.close()
 
     # Save the values as a JSON file
@@ -52,10 +62,10 @@ def plot_accuracy_and_loss(training_accuracy, validation_accuracy, training_loss
             'validation_loss': validation_loss
         }
     }
-    save_values_to_json(values_dict, save_directory + 'accuracy_and_loss_values.json')
+    save_values_to_json(values_dict, 'accuracy_and_loss_values.json')
 
 
-def overlay(video, save_directory):
+def overlay(video, save_path):
     # Preprocess the video frames
     stacked_frames = tf.stack(list(video), axis=-1)
     average_intensity = tf.reduce_mean(stacked_frames, axis=-1)
@@ -66,7 +76,7 @@ def overlay(video, save_directory):
     enhanced_image = cv2.cvtColor(enhanced_image_gray, cv2.COLOR_GRAY2RGB)
 
     # Save the preprocessed image
-    cv2.imwrite(save_directory, enhanced_image)
+    cv2.imwrite(save_path, enhanced_image)
 
     # Return the enhanced image
     return enhanced_image
@@ -125,8 +135,8 @@ def plot_predictions(predictions, test_videos_tensor):
     probabilities_list = normalized_probabilities.tolist()
 
     # Find the indices of the top three healthy and ill probabilities
-    top_healthy_indices = np.argsort(probabilities_list, axis=0)[-5:, 1]
-    top_ill_indices = np.argsort(probabilities_list, axis=0)[-5:, 0]
+    top_healthy_indices = np.argsort(probabilities_list, axis=0)[-10:, 1]
+    top_ill_indices = np.argsort(probabilities_list, axis=0)[-10:, 0]
 
     # Extract the videos with the top five healthy and ill probabilities
     top_healthy_videos = [test_videos_list[index] for index in top_healthy_indices]
@@ -134,10 +144,12 @@ def plot_predictions(predictions, test_videos_tensor):
 
     # Preprocess the videos and save the images
     for i, video in enumerate(top_healthy_videos):
-        overlay(video, save_directory + f'top_healthy_video_{i + 1}.png')
+        save_path = os.path.join(save_directory, f'{i + 1}_healthy_overlay.png')
+        overlay(video, save_path)
 
     for i, video in enumerate(top_ill_videos):
-        overlay(video, save_directory + f'top_ill_video_{i + 1}.png')
+        save_path = os.path.join(save_directory, f'{i + 1}_ill_overlay.png')
+        overlay(video, save_path)
 
     # Get the probabilities of being healthy and ill for the selected videos
     top_healthy_probabilities = normalized_probabilities[top_healthy_indices][:, 1]
@@ -145,12 +157,12 @@ def plot_predictions(predictions, test_videos_tensor):
 
     # Create the bar charts for the top five healthy videos
     for i in range(len(top_healthy_videos)):
-        plot_bar_chart(top_healthy_probabilities[i], save_directory + f'top_healthy_bar_chart_{i + 1}.eps')
+        plot_bar_chart(top_healthy_probabilities[i], os.path.join(save_directory, f'{i + 1}_healthy_bar_chart.eps'))
 
     # Create the bar charts for the top five ill videos
     for i in range(len(top_ill_videos)):
         reversed_probability = 1 - top_ill_probabilities[i]
-        plot_bar_chart(reversed_probability, save_directory + f'top_ill_bar_chart_{i + 1}.eps')
+        plot_bar_chart(reversed_probability, os.path.join(save_directory, f'{i + 1}_ill_bar_chart.eps'))
 
 
 
