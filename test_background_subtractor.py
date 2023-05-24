@@ -1,7 +1,15 @@
+import os
 import cv2
 import logging
 
-video_path = '/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent/1310_07853.avi'
+video_path = '/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused/1310_03454.avi'
+
+# Create the save directory path
+save_directory = os.path.join(os.getcwd(), 'frames')
+
+# Create the "frames" folder if it doesn't exist
+if not os.path.exists(save_directory):
+    os.makedirs(save_directory)
 
 video = [video_path]
 
@@ -44,10 +52,9 @@ for video_path in video:
                 video_frames.append(processed_frame)
 
                 # Save the frame.
-                cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_original.jpg', frame)
-                cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_processed.jpg', processed_frame)
-                cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_fg_mask.png', fgMask)
-
+                cv2.imwrite(f'{save_directory}/{frame_count:03}_original.jpg', frame)
+                cv2.imwrite(f'{save_directory}/{frame_count:03}_processed.jpg', processed_frame)
+                # cv2.imwrite(f'{save_directory}/{frame_count:03}_fg_mask.png', fgMask)
 
         # # Display processed frame.
         # cv2.imshow('Processed video', processed_frame)
