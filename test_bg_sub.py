@@ -54,15 +54,14 @@ for video_path in video:
                 # Save the frame.
                 cv2.imwrite(f'{save_directory}/{frame_count:03}_original.jpg', frame)
                 cv2.imwrite(f'{save_directory}/{frame_count:03}_processed.jpg', processed_frame)
-                # cv2.imwrite(f'{save_directory}/{frame_count:03}_fg_mask.png', fgMask)
 
-        # # Display processed frame.
-        # cv2.imshow('Processed video', processed_frame)
+        # Display processed frame.
+        cv2.imshow('Processed video', processed_frame)
 
     # Close the video file.
     cap.release()
 
-# # Wait for keypress and exit.
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+# Wait for keypress and exit.
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 

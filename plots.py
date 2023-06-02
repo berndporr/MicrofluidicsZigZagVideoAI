@@ -1,9 +1,9 @@
 import os
-import matplotlib.pyplot as plt
 import cv2
+import json
 import numpy as np
 import tensorflow as tf
-import json
+import matplotlib.pyplot as plt
 
 # Create the save directory path
 save_directory = os.path.join(os.getcwd(), 'frames')

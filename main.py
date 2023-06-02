@@ -1,17 +1,18 @@
+import os
 import sys
 import getopt
 import logging
-from video_processor import get_videos, process_dataset
-import plots
+
+import matplotlib.pyplot as plt
 
 import tensorflow as tf
 from keras.models import Sequential
 from keras.applications import EfficientNetB0
-from keras.models import save_model, load_model
-
 from keras.losses import SparseCategoricalCrossentropy
 from keras.layers import Rescaling, TimeDistributed, Dense, GlobalAveragePooling3D, Dropout
-import matplotlib.pyplot as plt
+
+import plots
+from video_processor import get_videos, save_video_labels_to_file, process_dataset
 
 
 def main(argv):
@@ -55,6 +56,13 @@ def main(argv):
     logging.disable(logging.CRITICAL)
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
+    # Create the save directory path
+    save_directory = os.path.join(os.getcwd(), 'frames')
+
+    # Create the "frames" folder if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+
     # Set GPU memory growth
     def setup_gpu_memory_growth() -> None:
         physical_devices = tf.config.list_physical_devices('GPU')
@@ -77,7 +85,7 @@ def main(argv):
         gpu()
 
     print("")
-    print(f"{int(videos)} videos and {epochs} epochs chosen")
+    print(f"{int(videos)} training videos and {epochs} epochs chosen")
     print("")
 
     # Define the native and modified paths
@@ -139,20 +147,13 @@ def main(argv):
     test_native_videos, test_native_labels = native_videos[val_index:test_index], native_labels[val_index:test_index]
     test_modified_videos, test_modified_labels = modified_videos[val_index:test_index], modified_labels[val_index:test_index]
 
-    # Save the videos and labels to files
-    def save_video_labels_to_file(filename, video_paths, labels):
-        with open(filename, "w") as file:
-            for video_path, label in zip(video_paths, labels):
-                file.write(f"{video_path},{label}\n")
-
-    # Save train videos and labels
-    save_video_labels_to_file("train_videos.txt", train_native_videos + train_modified_videos, train_native_labels + train_modified_labels)
-
-    # Save validation videos and labels
-    save_video_labels_to_file("val_videos.txt", val_native_videos + val_modified_videos, val_native_labels + val_modified_labels)
-
-    # Save test videos and labels
-    save_video_labels_to_file("test_videos.txt", test_native_videos + test_modified_videos, test_native_labels + test_modified_labels)
+    # Save videos and labels
+    save_video_labels_to_file(os.path.join(save_directory, "train_videos.txt"), train_native_videos + train_modified_videos,
+                              train_native_labels + train_modified_labels)
+    save_video_labels_to_file(os.path.join(save_directory, "val_videos.txt"), val_native_videos + val_modified_videos,
+                              val_native_labels + val_modified_labels)
+    save_video_labels_to_file(os.path.join(save_directory, "test_videos.txt"), test_native_videos + test_modified_videos,
+                              test_native_labels + test_modified_labels)
 
     # Split the dataset into train, validation, and test sets.
     train_videos_tensor, train_labels_tensor = process_dataset(train_native_videos, train_modified_videos,
@@ -179,11 +180,11 @@ def main(argv):
 
     # ----------------------------------- #
 
-    # Load the EfficientNetB0 model without the top layer.
+    # Load the EfficientNetB0 model without the top layer
     base_model = EfficientNetB0(include_top=False)
     base_model.trainable = False
 
-    # Create a sequential model.
+    # Create a sequential model
     model = Sequential([
         # Rescaling the input to the range [0, 1]
         Rescaling(scale=255),
@@ -204,9 +205,6 @@ def main(argv):
 
     # Fit the model to the training dataset and validation data
     history = model.fit(train_dataset, epochs=epochs, batch_size=1, validation_data=val_dataset)
-
-    # # Save the model
-    # model.save('/home/raj/PycharmProjects/model/my_model.h5')
 
     # Print the final accuracy
     final_accuracy = history.history['accuracy'][-1] * 100

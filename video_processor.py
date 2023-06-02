@@ -39,6 +39,12 @@ def get_videos(path_list, label, num_videos):
     return video_paths, video_labels
 
 
+def save_video_labels_to_file(filename, video_paths, labels):
+    with open(filename, "w") as file:
+        for video_path, label in zip(video_paths, labels):
+            file.write(f"{video_path},{label}\n")
+
+
 def process_dataset(native_videos, modified_videos, native_labels, modified_labels):
     # Process the native videos.
     processed_native_videos = process_videos(native_videos)
@@ -49,16 +55,10 @@ def process_dataset(native_videos, modified_videos, native_labels, modified_labe
     processed_videos = processed_videos.astype(np.float32) / 255.0
     processed_videos = tf.data.Dataset.from_tensor_slices(processed_videos)
 
-    # # Print processed_videos shape
-    # print(processed_videos.element_spec)
-
     # Use the provided labels.
     labels = np.concatenate([native_labels, modified_labels], axis=0)
     labels = labels.astype(np.int16)
     labels = tf.data.Dataset.from_tensor_slices(labels)
-
-    # # Print processed_videos shape
-    # print(labels.element_spec)
 
     # Return the processed data and labels.
     return processed_videos, labels
@@ -105,9 +105,6 @@ def process_videos(videos):
                 # Skip every other frame.
                 if frame_count % 10 == 0:
                     video_frames.append(processed_frame)
-
-                    # # Save the frame.
-                    # cv2.imwrite(f'/home/raj/PycharmProjects/frames/{frame_count:03}_processed.jpg', processed_frame)
 
         # Close the video file.
         cap.release()

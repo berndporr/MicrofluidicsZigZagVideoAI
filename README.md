@@ -1,31 +1,19 @@
-# Droplets Tensorflow classification
+# RBC Video Classification
 
-This repo does video classification
+This repo performs video classification
 
-## framegenerator.py
-Class which turns the raw AVI video files into
-a random access stream for TF. It does also
-cropping of the video and other on the fly tasks.
-These are being added as I go along.
+# main.py
+Train, validate and test (native vs chem. mod.) RBCs.
 
+# video_processor.py
+Labels the videos, subtracts the background, and 
+returns them as NumPy arrays.
 
-# test_framegenerator.py
-Tests the framegenerator if it generates the right
-dateformat for TF and displays the data.
+# plots.py
+Plots accuracy, loss and probability predictions.
 
-# training_beads.py
-Tensorflow classification bewtween the plastic
-beads before we had the blood samples.
+# test_get_videos.py
+Tests loading videos from the file directory.
 
-# viewer_blood.py
-Viewer shows a couple of clips from the red blood cells.
-
-# test_bgframegenerator.py
-Tests background substraction (work in progress and not working at the moment)
-
-# testopencv.py
-Tests basic functionality of openCV and matplotlib if it's able
-to load the video and display it.
-
-# training_blood.py
-Training of the healthy vs ill red blood cells.
+# test_bg_sub.py
+Performs background subtraction, displays processed video.
