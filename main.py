@@ -43,9 +43,6 @@ def main(argv):
     elif option == "GA":
         videos = 100
         epochs = 100
-    elif option == "TEST":
-        videos = 30
-        epochs = 20
 
     train_index = int(videos * 0.5)
     val_index = int(train_index + (videos * 0.2))
@@ -90,23 +87,10 @@ def main(argv):
 
     # Define the native and modified paths
     native_paths = [
-        ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused",
-         "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_overfocused2ticks",
-         "/data/RBC_Phantom_60xOlympus/Donor_1/Native5_underfocused2ticks",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"],
-        ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"],
-        ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"],
-        ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"],
-        ["/data/RBC_Phantom_60xOlympus/Donor_1/Native5_focused"]
-    ]
+                       ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_3_focused",
+                        "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_2_underfocused",
+                        "/data/RBC_Phantom_60xOlympus/Donor_2/RBC_9March2023_Donor2_4_overfocused"]
+                   ] * 4
 
     modified_paths = [
         ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay0.74wtPerc_2_IF",
@@ -122,17 +106,12 @@ def main(argv):
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Overfocused",
          "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_1mMDiamide_Split_Underfocused"],
         ["/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_GA1percent_IF",
-         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_GA1percent_OF"],
-        ["/data/RBC_Phantom_60xOlympus/Donor_1/FA_0.37wtPercent"]
+         "/data/RBC_Phantom_60xOlympus/Donor_2/RBC10March2023_Donor2_2ndDay_GA1percent_OF"]
     ]
 
-    # Validate the chosen option
-    if option not in ["MIX", "FA", "DA", "GA", "TEST"]:
-        option = "MIX"
-
     # Get the selected paths based on the chosen option
-    selected_native_paths = native_paths[["MIX", "FA", "DA", "GA", "TEST"].index(option)]
-    selected_modified_paths = modified_paths[["MIX", "FA", "DA", "GA", "TEST"].index(option)]
+    selected_native_paths = native_paths[["MIX", "FA", "DA", "GA"].index(option)]
+    selected_modified_paths = modified_paths[["MIX", "FA", "DA", "GA"].index(option)]
 
     native_videos, native_labels = get_videos(selected_native_paths, label=1, num_videos=video_index)
     modified_videos, modified_labels = get_videos(selected_modified_paths, label=0, num_videos=video_index)

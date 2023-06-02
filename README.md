@@ -4,9 +4,13 @@ R. K. Rajaram Baskaran, A. Link, B. Porr and T. Franke
 
 # Prerequisites
 
- - Tensorflow
- - numpy
- - matplotlib
+ - Python 3.10.6
+ - Tensorflow 2.11.0 
+ - Keras
+ - OpenCV
+ - NumPy
+ - Matplotlib
+ - tqdm
 
 # Usage
 
@@ -15,13 +19,13 @@ R. K. Rajaram Baskaran, A. Link, B. Porr and T. Franke
 
 ## `main.py --option=<option_name>`
 Train, validate and test (native vs chem. mod.) RBCs.
+(main.py uses MIX by default)
 
 Options:
  - FA: Classification of native vs formaldehyde
  - DA: Classification of native vs diamide
- - GA: Classification of native vs ????
- - MIX: Classification of native vs a max of formaldehyde, diamide, ???
- - TEST: ???????? 
+ - GA: Classification of native vs glutaraldehyde
+ - MIX: Classification of native vs random mix of formaldehyde, diamide, glutaraldehyde
 
 This generates `accuracy_and_loss_values.json`
 which is then imported into `plots.py`.
@@ -31,8 +35,8 @@ which is then imported into `plots.py`.
 Loads `accuracy_and_loss_values.json` and
 plots accuracy, loss and probability predictions.
 
-# Modules
 
+# Modules
 
 ## `video_processor.py`
 Labels the videos, subtracts the background, and 
