@@ -2,6 +2,12 @@
 
 R. K. Rajaram Baskaran, A. Link, B. Porr and T. Franke
 
+# Prerequisites
+
+ - Tensorflow
+ - numpy
+ - matplotlib
+
 # Usage
 
  1. run `main.py` to train, create, validate and test the model.
