@@ -23,12 +23,12 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: {} FA or DA or GA or MIX".format(sys.argv[0]))
         quit(0)
-        
+
     option = sys.argv[1]
 
     plots.setResultsDir('results_'+option)
     log_directory = plots.getResultsDir()
-    print("Results are written into the directoy:",log_directory)
+    print("Option:",option,"-- results are written into the directoy:",log_directory)
 
     train_index = int(videos * 0.5)
     val_index = int(train_index + 50)
