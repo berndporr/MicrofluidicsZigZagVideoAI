@@ -31,13 +31,22 @@ Options:
 This generates `accuracy_and_loss_values.json`
 which is then imported into `plots.py`.
 
+# runall.sh
+
+Runs all conditions: FA, DA, GA and MIX. If run in the foreground it blocks after every
+condition and shows the accuracy and loss.
+Run with:
+```
+nohup ./runall.sh > log.txt &
+``` 
+which runs all conditions in the background.
+You can log out and it will continue.
+
+# Modules
 
 ## `plots.py`
 Loads `accuracy_and_loss_values.json` and
 plots accuracy, loss and probability predictions.
-
-
-# Modules
 
 ## `video_processor.py`
 Labels the videos, subtracts the background, and 
