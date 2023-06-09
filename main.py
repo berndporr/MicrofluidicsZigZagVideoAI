@@ -32,21 +32,21 @@ def main(argv):
             option = arg
 
     if option == "MIX":
-        videos = 300
-        epochs = 150
+        videos = 200
+        epochs = 100
     elif option == "FA":
-        videos = 100
+        videos = 200
         epochs = 100
     elif option == "DA":
-        videos = 100
+        videos = 200
         epochs = 100
     elif option == "GA":
-        videos = 100
+        videos = 200
         epochs = 100
 
     train_index = int(videos * 0.5)
     val_index = int(train_index + (videos * 0.2))
-    test_index = int(val_index + (videos * 0.1))
+    test_index = int(val_index + 100)
     video_index = int((train_index + val_index + test_index) // 2)
 
     # Disable logging messages
