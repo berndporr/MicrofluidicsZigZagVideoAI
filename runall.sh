@@ -1,6 +1,6 @@
 #! /bin/sh
 
-./main.py GA
-./main.py DA
-./main.py FA
-./main.py MIX
+./main.py GA -q
+./main.py DA -q
+./main.py FA -q
+./main.py MIX -q

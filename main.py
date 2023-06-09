@@ -21,7 +21,7 @@ def main():
     epochs = 100
 
     if len(sys.argv) < 2:
-        print("Usage: {} FA or DA or GA or MIX".format(sys.argv[0]))
+        print("Usage: {} FA or DA or GA or MIX [-q]".format(sys.argv[0]))
         quit(0)
 
     option = sys.argv[1]
@@ -197,14 +197,16 @@ def main():
     # Call the plot_predictions function
     plots.plot_predictions(predictions, test_videos_tensor)
 
-    # Show the plots
-    plt.show()
-
     # Saved plots
     print("")
     print("Plots saved")
     print("")
 
+    if len(sys.argv) > 2:
+        if '-q' in sys.argv[2]:
+            return
+
+    plt.show()
 
 if __name__ == "__main__":
     main()
