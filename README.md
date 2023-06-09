@@ -19,9 +19,8 @@ R. K. Rajaram Baskaran, A. Link, B. Porr and T. Franke
  1. run `main.py` to train, create, validate and test the model.
  2. run `plots.py` to generate the plots as seen in the paper.
 
-## `main.py --option=<option_name>`
+## `main.py <option_name>`
 Train, validate and test (native vs chem. mod.) RBCs.
-(main.py uses MIX by default)
 
 Options:
  - FA: Classification of native vs formaldehyde

@@ -5,13 +5,14 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-# Create the save directory path
-save_directory = os.path.join(os.getcwd(), 'frames')
+def setResultsDir(c):
+    # Create the save directory path
+    global save_directory
+    save_directory = os.path.join(os.getcwd(), c)
 
-# Create the "frames" folder if it doesn't exist
-if not os.path.exists(save_directory):
-    os.makedirs(save_directory)
-
+    # Create the "frames" folder if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
 
 def save_values_to_json(values_dict, json_file_path):
     # Create the full file path within the save directory
@@ -47,11 +48,8 @@ def plot_accuracy_and_loss(training_accuracy, validation_accuracy, training_loss
     # Adjust the spacing between subplots
     plt.subplots_adjust(wspace=0.3)
 
-    plt.show()
-
     # Save the plot as an EPS file
-    plt.savefig(os.path.join(save_directory, 'accuracy_and_loss_plot.eps'), format='eps')
-    plt.close()
+    fig.savefig(os.path.join(save_directory, 'accuracy_and_loss_plot.eps'), format='eps')
 
     # Save the values as a JSON file
     values_dict = {
@@ -100,7 +98,7 @@ def plot_bar_chart(probabilities, save_path):
     thisplot[1].set_height(1 - probabilities)
 
     # Save the plot to the specified path
-    plt.savefig(save_path)
+    fig.savefig(save_path)
 
     # Close the plot
     plt.close(fig)
@@ -163,6 +161,4 @@ def plot_predictions(predictions, test_videos_tensor):
     for i in range(len(top_ill_videos)):
         reversed_probability = 1 - top_ill_probabilities[i]
         plot_bar_chart(reversed_probability, os.path.join(save_directory, f'{i + 1}_ill_bar_chart.eps'))
-
-
 

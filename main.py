@@ -1,6 +1,7 @@
+#!/usr/bin/python3
+
 import os
 import sys
-import getopt
 import logging
 
 import matplotlib.pyplot as plt
@@ -15,38 +16,20 @@ import plots
 from video_processor import get_videos, save_video_labels_to_file, process_dataset
 
 
-def main(argv):
-    videos = 0
-    epochs = 0
-    option = "MIX"  # Initialize option with the default value
+def main():
+    videos = 200
+    epochs = 100
 
-    # Get parameters from command line
-    try:
-        opts, args = getopt.getopt(argv, "", ["option="])
-    except getopt.GetoptError:
-        print("main.py --option=<option_name>")
-        sys.exit(2)
-
-    for opt, arg in opts:
-        if opt == "--option":
-            option = arg
-
-    if option == "MIX":
-        videos = 200
-        epochs = 100
-    elif option == "FA":
-        videos = 200
-        epochs = 100
-    elif option == "DA":
-        videos = 200
-        epochs = 100
-    elif option == "GA":
-        videos = 200
-        epochs = 100
+    if len(sys.argv) < 2:
+        print("Usage: {} FA or DA or GA or MIX".format(sys.argv[0]))
+        quit(0)
+        
+    option = sys.argv[1]
+    plots.setResultsDir('results_'+option)
 
     train_index = int(videos * 0.5)
-    val_index = int(train_index + (videos * 0.2))
-    test_index = int(val_index + 100)
+    val_index = int(train_index + 50)
+    test_index = int(val_index + 50)
     video_index = int((train_index + val_index + test_index) // 2)
 
     # Disable logging messages
@@ -54,11 +37,11 @@ def main(argv):
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
     # Create the save directory path
-    save_directory = os.path.join(os.getcwd(), 'frames')
+    frames_directory = os.path.join(os.getcwd(), 'frames')
 
     # Create the "frames" folder if it doesn't exist
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)
+    if not os.path.exists(frames_directory):
+        os.makedirs(frames_directory)
 
     # Set GPU memory growth
     def setup_gpu_memory_growth() -> None:
@@ -111,7 +94,9 @@ def main(argv):
 
     # Get the selected paths based on the chosen option
     selected_native_paths = native_paths[["MIX", "FA", "DA", "GA"].index(option)]
+    print("Native paths:",selected_native_paths)
     selected_modified_paths = modified_paths[["MIX", "FA", "DA", "GA"].index(option)]
+    print("Mod paths:",selected_modified_paths)
 
     native_videos, native_labels = get_videos(selected_native_paths, label=1, num_videos=video_index)
     modified_videos, modified_labels = get_videos(selected_modified_paths, label=0, num_videos=video_index)
@@ -127,11 +112,11 @@ def main(argv):
     test_modified_videos, test_modified_labels = modified_videos[val_index:test_index], modified_labels[val_index:test_index]
 
     # Save videos and labels
-    save_video_labels_to_file(os.path.join(save_directory, "train_videos.txt"), train_native_videos + train_modified_videos,
+    save_video_labels_to_file(os.path.join(frames_directory, "train_videos.txt"), train_native_videos + train_modified_videos,
                               train_native_labels + train_modified_labels)
-    save_video_labels_to_file(os.path.join(save_directory, "val_videos.txt"), val_native_videos + val_modified_videos,
+    save_video_labels_to_file(os.path.join(frames_directory, "val_videos.txt"), val_native_videos + val_modified_videos,
                               val_native_labels + val_modified_labels)
-    save_video_labels_to_file(os.path.join(save_directory, "test_videos.txt"), test_native_videos + test_modified_videos,
+    save_video_labels_to_file(os.path.join(frames_directory, "test_videos.txt"), test_native_videos + test_modified_videos,
                               test_native_labels + test_modified_labels)
 
     # Split the dataset into train, validation, and test sets.
@@ -226,4 +211,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
