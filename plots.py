@@ -14,6 +14,10 @@ def setResultsDir(c):
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
 
+def getResultsDir():
+    global save_directory
+    return save_directory
+
 def save_values_to_json(values_dict, json_file_path):
     # Create the full file path within the save directory
     file_path = os.path.join(save_directory, json_file_path)

@@ -25,7 +25,10 @@ def main():
         quit(0)
         
     option = sys.argv[1]
+
     plots.setResultsDir('results_'+option)
+    log_directory = plots.getResultsDir()
+    print("Results are written into the directoy:",log_directory)
 
     train_index = int(videos * 0.5)
     val_index = int(train_index + 50)
@@ -35,13 +38,6 @@ def main():
     # Disable logging messages
     logging.disable(logging.CRITICAL)
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
-    # Create the save directory path
-    frames_directory = os.path.join(os.getcwd(), 'frames')
-
-    # Create the "frames" folder if it doesn't exist
-    if not os.path.exists(frames_directory):
-        os.makedirs(frames_directory)
 
     # Set GPU memory growth
     def setup_gpu_memory_growth() -> None:
@@ -112,11 +108,11 @@ def main():
     test_modified_videos, test_modified_labels = modified_videos[val_index:test_index], modified_labels[val_index:test_index]
 
     # Save videos and labels
-    save_video_labels_to_file(os.path.join(frames_directory, "train_videos.txt"), train_native_videos + train_modified_videos,
+    save_video_labels_to_file(os.path.join(log_directory, "train_videos.txt"), train_native_videos + train_modified_videos,
                               train_native_labels + train_modified_labels)
-    save_video_labels_to_file(os.path.join(frames_directory, "val_videos.txt"), val_native_videos + val_modified_videos,
+    save_video_labels_to_file(os.path.join(log_directory, "val_videos.txt"), val_native_videos + val_modified_videos,
                               val_native_labels + val_modified_labels)
-    save_video_labels_to_file(os.path.join(frames_directory, "test_videos.txt"), test_native_videos + test_modified_videos,
+    save_video_labels_to_file(os.path.join(log_directory, "test_videos.txt"), test_native_videos + test_modified_videos,
                               test_native_labels + test_modified_labels)
 
     # Split the dataset into train, validation, and test sets.
