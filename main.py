@@ -15,6 +15,9 @@ from keras.layers import Rescaling, TimeDistributed, Dense, GlobalAveragePooling
 import plots
 from video_processor import get_videos, save_video_labels_to_file, process_dataset
 
+def logPrint(msg):
+    logging.info(msg)
+    print(msg)
 
 def main():
     videos = 200
@@ -29,6 +32,10 @@ def main():
     plots.setResultsDir('results_'+option)
     log_directory = plots.getResultsDir()
     print("Option:",option,"-- results are written into the directoy:",log_directory)
+    logging.basicConfig(filename=os.path.join(log_directory,"results.log"),
+                        encoding='utf-8',
+                        level=logging.DEBUG,
+                        format='%(message)s')
 
     train_index = int(videos * 0.5)
     val_index = int(train_index + 50)
@@ -36,7 +43,6 @@ def main():
     video_index = int((train_index + val_index + test_index) // 2)
 
     # Disable logging messages
-    logging.disable(logging.CRITICAL)
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
     # Set GPU memory growth
@@ -60,9 +66,9 @@ def main():
     if __name__ == '__gpu__':
         gpu()
 
-    print("")
-    print(f"{int(videos)} training videos and {epochs} epochs chosen")
-    print("")
+    logPrint("")
+    logPrint("{} training videos and {} epochs chosen.".format(int(videos),int(epochs)))
+    logPrint("")
 
     # Define the native and modified paths
     native_paths = [
@@ -90,9 +96,9 @@ def main():
 
     # Get the selected paths based on the chosen option
     selected_native_paths = native_paths[["MIX", "FA", "DA", "GA"].index(option)]
-    print("Native paths:",selected_native_paths)
+    logPrint("Native paths: {}".format(selected_native_paths))
     selected_modified_paths = modified_paths[["MIX", "FA", "DA", "GA"].index(option)]
-    print("Mod paths:",selected_modified_paths)
+    logPrint("Chem mod paths: {}".format(selected_modified_paths))
 
     native_videos, native_labels = get_videos(selected_native_paths, label=1, num_videos=video_index)
     modified_videos, modified_labels = get_videos(selected_modified_paths, label=0, num_videos=video_index)
@@ -163,14 +169,16 @@ def main():
                   loss=SparseCategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
+    csv_logger = tf.keras.callbacks.CSVLogger(os.path.join(log_directory,"model_fit.tsv"),separator="\t")
+
     # Fit the model to the training dataset and validation data
-    history = model.fit(train_dataset, epochs=epochs, batch_size=1, validation_data=val_dataset)
+    history = model.fit(train_dataset, epochs=epochs, batch_size=1, validation_data=val_dataset, callbacks=[csv_logger])
 
     # Print the final accuracy
     final_accuracy = history.history['accuracy'][-1] * 100
-    print("")
-    print("Training accuracy: {:.2f}%".format(final_accuracy))
-    print("")
+    logPrint("")
+    logPrint("{} training accuracy: {:.2f}%".format(option,final_accuracy))
+    logPrint("")
 
     # Get the training accuracy and validation accuracy from the history object
     training_accuracy = history.history['accuracy']
@@ -184,9 +192,9 @@ def main():
     test_loss, test_accuracy = model.evaluate(test_dataset)
 
     # Print the test loss and test accuracy
-    print("")
-    print("Test accuracy: {:.2f}%".format(test_accuracy * 100))
-    print("")
+    logPrint("")
+    logPrint("{} Test accuracy: {:.2f}%".format(optiontest_accuracy * 100))
+    logPrint("")
 
     # Call the plot_accuracy_and_loss function
     plots.plot_accuracy_and_loss(training_accuracy, validation_accuracy, training_loss, validation_loss)
@@ -197,9 +205,10 @@ def main():
     # Call the plot_predictions function
     plots.plot_predictions(predictions, test_videos_tensor)
 
-    # Saved plots
+    logging.shutdown()
+
     print("")
-    print("Plots saved")
+    print("Finished.")
     print("")
 
     if len(sys.argv) > 2:
