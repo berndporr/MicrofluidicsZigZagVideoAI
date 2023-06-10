@@ -29,12 +29,19 @@ def main():
 
     option = sys.argv[1]
 
-    plots.setResultsDir('results_'+option)
-    log_directory = plots.getResultsDir()
+    # Create the results directory path
+    log_directory = os.path.join(os.getcwd(),'results_'+option)
+
+    # Create the folder if it doesn't exist
+    if not os.path.exists(log_directory):
+        os.makedirs(log_directory)
+
+    plots.setResultsDir(log_directory)
+
     print("Option:",option,"-- results are written into the directoy:",log_directory)
-    logging.basicConfig(filename=os.path.join(log_directory,"results.log"),
+    logging.basicConfig(filename=os.path.join(log_directory,"log.txt"),
                         encoding='utf-8',
-                        level=logging.DEBUG,
+                        level=logging.INFO,
                         format='%(message)s')
 
     train_index = int(videos * 0.5)

@@ -5,18 +5,11 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
+save_directory = "/tmp"
+
 def setResultsDir(c):
-    # Create the save directory path
     global save_directory
-    save_directory = os.path.join(os.getcwd(), c)
-
-    # Create the "frames" folder if it doesn't exist
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)
-
-def getResultsDir():
-    global save_directory
-    return save_directory
+    save_directory = c
 
 def save_values_to_json(values_dict, json_file_path):
     # Create the full file path within the save directory
