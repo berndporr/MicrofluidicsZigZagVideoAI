@@ -172,12 +172,14 @@ def main():
     csv_logger = tf.keras.callbacks.CSVLogger(os.path.join(log_directory,"model_fit.tsv"),separator="\t")
 
     # Fit the model to the training dataset and validation data
-    history = model.fit(train_dataset, epochs=epochs, batch_size=1, validation_data=val_dataset, callbacks=[csv_logger])
+    history = model.fit(train_dataset, epochs=epochs, validation_data=val_dataset, callbacks=[csv_logger])
 
     # Print the final accuracy
     final_accuracy = history.history['accuracy'][-1] * 100
+    final_val_accuracy = history.history['val_accuracy'][-1] * 100
     logPrint("")
     logPrint("{} training accuracy: {:.2f}%".format(option,final_accuracy))
+    logPrint("{} validation accuracy: {:.2f}%".format(option,final_val_accuracy))
     logPrint("")
 
     # Get the training accuracy and validation accuracy from the history object
@@ -191,9 +193,9 @@ def main():
     # Test the model on the test dataset
     test_loss, test_accuracy = model.evaluate(test_dataset)
 
-    # Print the test loss and test accuracy
+    # Print the test accuracy
     logPrint("")
-    logPrint("{} Test accuracy: {:.2f}%".format(optiontest_accuracy * 100))
+    logPrint("{} test accuracy: {:.2f}%".format(option,test_accuracy * 100))
     logPrint("")
 
     # Call the plot_accuracy_and_loss function
