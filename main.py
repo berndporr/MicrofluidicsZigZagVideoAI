@@ -15,13 +15,17 @@ from keras.layers import Rescaling, TimeDistributed, Dense, GlobalAveragePooling
 import plots
 from video_processor import get_videos, save_video_labels_to_file, process_dataset
 
+
 def logPrint(msg):
     logging.info(msg)
     print(msg)
 
+
 def main():
-    videos = 200
-    epochs = 100
+    videos = 10
+    epochs = 5
+    # videos = 200
+    # epochs = 100
 
     if len(sys.argv) < 2:
         print("Usage: {} FA or DA or GA or MIX [-q]".format(sys.argv[0]))
@@ -30,7 +34,7 @@ def main():
     option = sys.argv[1]
 
     # Create the results directory path
-    log_directory = os.path.join(os.getcwd(),'results_'+option)
+    log_directory = os.path.join(os.getcwd(), 'results_' + option)
 
     # Create the folder if it doesn't exist
     if not os.path.exists(log_directory):
@@ -38,15 +42,17 @@ def main():
 
     plots.setResultsDir(log_directory)
 
-    print("Option:",option,"-- results are written into the directoy:",log_directory)
-    logging.basicConfig(filename=os.path.join(log_directory,"log.txt"),
+    print("Option:", option, "-- results are written into the directory:", log_directory)
+    logging.basicConfig(filename=os.path.join(log_directory, "log.txt"),
                         encoding='utf-8',
                         level=logging.INFO,
                         format='%(message)s')
 
     train_index = int(videos * 0.5)
-    val_index = int(train_index + 50)
-    test_index = int(val_index + 50)
+    val_index = int(train_index + 5)
+    test_index = int(val_index + 5)
+    # val_index = int(train_index + 50)
+    # test_index = int(val_index + 50)
     video_index = int((train_index + val_index + test_index) // 2)
 
     # Disable logging messages
@@ -74,7 +80,7 @@ def main():
         gpu()
 
     logPrint("")
-    logPrint("{} training videos and {} epochs chosen.".format(int(videos),int(epochs)))
+    logPrint("{} training videos and {} epochs chosen.".format(int(videos), int(epochs)))
     logPrint("")
 
     # Define the native and modified paths
@@ -129,12 +135,18 @@ def main():
                               test_native_labels + test_modified_labels)
 
     # Split the dataset into train, validation, and test sets.
-    train_videos_tensor, train_labels_tensor = process_dataset(train_native_videos, train_modified_videos,
-                                                               train_native_labels, train_modified_labels)
-    val_videos_tensor, val_labels_tensor = process_dataset(val_native_videos, val_modified_videos,
-                                                           val_native_labels, val_modified_labels)
-    test_videos_tensor, test_labels_tensor = process_dataset(test_native_videos, test_modified_videos,
-                                                             test_native_labels, test_modified_labels)
+    train_videos_tensor, train_labels_tensor, train_vid_id, train_vid_paths = process_dataset(train_native_videos,
+                                                                                              train_modified_videos,
+                                                                                              train_native_labels,
+                                                                                              train_modified_labels)
+    val_videos_tensor, val_labels_tensor, val_vid_id, val_vid_paths = process_dataset(val_native_videos,
+                                                                                      val_modified_videos,
+                                                                                      val_native_labels,
+                                                                                      val_modified_labels)
+    test_videos_tensor, test_labels_tensor, test_vid_id, test_vid_paths = process_dataset(test_native_videos,
+                                                                                          test_modified_videos,
+                                                                                          test_native_labels,
+                                                                                          test_modified_labels)
 
     # Process the dataset into a form that can be used by the model
     autotune = tf.data.experimental.AUTOTUNE
@@ -176,7 +188,7 @@ def main():
                   loss=SparseCategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
-    csv_logger = tf.keras.callbacks.CSVLogger(os.path.join(log_directory,"model_fit.tsv"),separator="\t")
+    csv_logger = tf.keras.callbacks.CSVLogger(os.path.join(log_directory, "model_fit.tsv"), separator="\t")
 
     # Fit the model to the training dataset and validation data
     history = model.fit(train_dataset, epochs=epochs, validation_data=val_dataset, callbacks=[csv_logger])
@@ -185,8 +197,8 @@ def main():
     final_accuracy = history.history['accuracy'][-1] * 100
     final_val_accuracy = history.history['val_accuracy'][-1] * 100
     logPrint("")
-    logPrint("{} training accuracy: {:.2f}%".format(option,final_accuracy))
-    logPrint("{} validation accuracy: {:.2f}%".format(option,final_val_accuracy))
+    logPrint("{} training accuracy: {:.2f}%".format(option, final_accuracy))
+    logPrint("{} validation accuracy: {:.2f}%".format(option, final_val_accuracy))
     logPrint("")
 
     # Get the training accuracy and validation accuracy from the history object
@@ -202,7 +214,7 @@ def main():
 
     # Print the test accuracy
     logPrint("")
-    logPrint("{} test accuracy: {:.2f}%".format(option,test_accuracy * 100))
+    logPrint("{} test accuracy: {:.2f}%".format(option, test_accuracy * 100))
     logPrint("")
 
     # Call the plot_accuracy_and_loss function
@@ -212,7 +224,7 @@ def main():
     predictions = model.predict(test_dataset)
 
     # Call the plot_predictions function
-    plots.plot_predictions(predictions, test_videos_tensor)
+    plots.plot_predictions(predictions, test_videos_tensor, test_vid_id, test_vid_paths)
 
     logging.shutdown()
 
@@ -225,6 +237,7 @@ def main():
             return
 
     plt.show()
+
 
 if __name__ == "__main__":
     main()

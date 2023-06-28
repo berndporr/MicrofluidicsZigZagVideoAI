@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 
 save_directory = "/tmp"
 
+
 def setResultsDir(c):
     global save_directory
     save_directory = c
+
 
 def save_values_to_json(values_dict, json_file_path):
     # Create the full file path within the save directory
@@ -77,7 +79,7 @@ def overlay(video, save_path):
     return enhanced_image
 
 
-def plot_bar_chart(probabilities, save_path):
+def plot_bar_chart(probabilities, save_path, vid_id, video_path):
     # Create a figure with the specified size
     fig, ax = plt.subplots(figsize=(2, 6))
 
@@ -104,18 +106,31 @@ def plot_bar_chart(probabilities, save_path):
     values_dict = {
         'bar_chart_values': {
             'probabilities': probabilities.tolist(),
-            'save_path': save_path
+            'save_path': save_path,
+            'video_path': video_path
         }
     }
     save_values_to_json(values_dict, save_path[:-4] + '_values.json')
 
 
-def plot_predictions(predictions, test_videos_tensor):
-    # Convert TensorSliceDataset to list
-    test_videos_list = list(test_videos_tensor)
+def plot_predictions(predictions, test_videos_tensor, test_vid_id, test_vid_paths):
+    # Convert the test_videos_tensor to a NumPy array
+    test_videos_array = np.array(list(test_videos_tensor.as_numpy_iterator()))
+
+    # Convert the test_videos_array to a list
+    test_videos_list = test_videos_array.tolist()
+
+    # Convert the test_vid_id to a list of strings
+    vid_id_list = [str(item) for item in list(test_vid_id)]
+
+    # # Create a dictionary for video path and corresponding unique identifier
+    vid_id_dict = dict(zip(test_videos_list, vid_id_list))
+
+    # Convert the predictions list to a TensorFlow tensor
+    predictions_tensor = tf.convert_to_tensor(predictions)
 
     # Apply softmax to obtain probabilities
-    probabilities = tf.nn.softmax(predictions)
+    probabilities = tf.nn.softmax(predictions_tensor)
 
     # Convert probabilities to a NumPy array
     probabilities_array = probabilities.numpy()
@@ -129,13 +144,19 @@ def plot_predictions(predictions, test_videos_tensor):
     # Convert the probabilities to a list
     probabilities_list = normalized_probabilities.tolist()
 
-    # Find the indices of the top three healthy and ill probabilities
+    # Find the indices of the top ten healthy and ill probabilities
     top_healthy_indices = np.argsort(probabilities_list, axis=0)[-10:, 1]
     top_ill_indices = np.argsort(probabilities_list, axis=0)[-10:, 0]
 
-    # Extract the videos with the top five healthy and ill probabilities
+    # Extract the videos with the top ten healthy and ill probabilities
     top_healthy_videos = [test_videos_list[index] for index in top_healthy_indices]
     top_ill_videos = [test_videos_list[index] for index in top_ill_indices]
+
+    # Find the corresponding video ids and paths using the extracted videos
+    top_healthy_ids = [vid_id_dict.get(video_path.ref()) for video_path in top_healthy_videos]
+    top_ill_ids = [vid_id_dict.get(video_path.ref()) for video_path in top_ill_videos]
+    top_healthy_paths = [test_vid_paths[np.where(test_videos_array == video_path)[0][0]] for video_path in top_healthy_videos]
+    top_ill_paths = [test_vid_paths[np.where(test_videos_array == video_path)[0][0]] for video_path in top_ill_videos]
 
     # Preprocess the videos and save the images
     for i, video in enumerate(top_healthy_videos):
@@ -150,12 +171,13 @@ def plot_predictions(predictions, test_videos_tensor):
     top_healthy_probabilities = normalized_probabilities[top_healthy_indices][:, 1]
     top_ill_probabilities = normalized_probabilities[top_ill_indices][:, 0]
 
-    # Create the bar charts for the top five healthy videos
+    # Create the bar charts for the top ten healthy videos
     for i in range(len(top_healthy_videos)):
-        plot_bar_chart(top_healthy_probabilities[i], os.path.join(save_directory, f'{i + 1}_healthy_bar_chart.eps'))
+        plot_bar_chart(top_healthy_probabilities[i], os.path.join(save_directory, f'{i + 1}_healthy_bar_chart.eps'),
+                       top_healthy_ids[i], top_healthy_paths[i])
 
-    # Create the bar charts for the top five ill videos
+    # Create the bar charts for the top ten ill videos
     for i in range(len(top_ill_videos)):
         reversed_probability = 1 - top_ill_probabilities[i]
-        plot_bar_chart(reversed_probability, os.path.join(save_directory, f'{i + 1}_ill_bar_chart.eps'))
-
+        plot_bar_chart(reversed_probability, os.path.join(save_directory, f'{i + 1}_ill_bar_chart.eps'),
+                       top_ill_ids[i], top_ill_paths[i])
