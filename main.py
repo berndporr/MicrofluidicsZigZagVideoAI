@@ -135,18 +135,18 @@ def main():
                               test_native_labels + test_modified_labels)
 
     # Split the dataset into train, validation, and test sets.
-    train_videos_tensor, train_labels_tensor, train_vid_id, train_vid_paths = process_dataset(train_native_videos,
-                                                                                              train_modified_videos,
-                                                                                              train_native_labels,
-                                                                                              train_modified_labels)
-    val_videos_tensor, val_labels_tensor, val_vid_id, val_vid_paths = process_dataset(val_native_videos,
-                                                                                      val_modified_videos,
-                                                                                      val_native_labels,
-                                                                                      val_modified_labels)
-    test_videos_tensor, test_labels_tensor, test_vid_id, test_vid_paths = process_dataset(test_native_videos,
-                                                                                          test_modified_videos,
-                                                                                          test_native_labels,
-                                                                                          test_modified_labels)
+    train_videos_tensor, train_labels_tensor, train_vid_paths = process_dataset(train_native_videos,
+                                                                                train_modified_videos,
+                                                                                train_native_labels,
+                                                                                train_modified_labels)
+    val_videos_tensor, val_labels_tensor, val_vid_paths = process_dataset(val_native_videos,
+                                                                          val_modified_videos,
+                                                                          val_native_labels,
+                                                                          val_modified_labels)
+    test_videos_tensor, test_labels_tensor, test_vid_paths = process_dataset(test_native_videos,
+                                                                             test_modified_videos,
+                                                                             test_native_labels,
+                                                                             test_modified_labels)
 
     # Process the dataset into a form that can be used by the model
     autotune = tf.data.experimental.AUTOTUNE
@@ -224,7 +224,7 @@ def main():
     predictions = model.predict(test_dataset)
 
     # Call the plot_predictions function
-    plots.plot_predictions(predictions, test_videos_tensor, test_vid_id, test_vid_paths)
+    plots.plot_predictions(predictions, test_videos_tensor, test_vid_paths)
 
     logging.shutdown()
 

@@ -2,7 +2,6 @@ import logging
 from tqdm import tqdm
 import cv2
 import random
-import uuid
 import numpy as np
 import os
 import tensorflow as tf
@@ -48,8 +47,8 @@ def save_video_labels_to_file(filename, video_paths, labels):
 
 def process_dataset(native_videos, modified_videos, native_labels, modified_labels):
     # Process the native videos.
-    processed_native_videos, native_videos_paths, native_videos_id_list = process_videos(native_videos)
-    processed_modified_videos, modified_videos_paths, modified_videos_id_list = process_videos(modified_videos)
+    processed_native_videos, native_videos_paths = process_videos(native_videos)
+    processed_modified_videos, modified_videos_paths = process_videos(modified_videos)
 
     # Concatenate the native and modified data.
     processed_videos = np.concatenate([processed_native_videos, processed_modified_videos], axis=0)
@@ -61,11 +60,10 @@ def process_dataset(native_videos, modified_videos, native_labels, modified_labe
     labels = labels.astype(np.int16)
     labels = tf.data.Dataset.from_tensor_slices(labels)
 
-    # Join the sources.
-    vid_id = np.concatenate([native_videos_id_list, modified_videos_id_list], axis=0)
+    all_video_paths = native_videos_paths + modified_videos_paths
 
     # Return the processed data, labels, and video paths.
-    return processed_videos, labels, vid_id, native_videos_paths + modified_videos_paths
+    return processed_videos, labels, all_video_paths
 
 
 def process_videos(videos):
@@ -77,7 +75,6 @@ def process_videos(videos):
 
     # Iterate over the video paths.
     for video_path in tqdm(videos, desc='Processing videos', position=0, leave=True):
-        video_id = str(uuid.uuid4())  # Generate a unique identifier as the video label
         # Open the video file.
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
@@ -122,7 +119,6 @@ def process_videos(videos):
 
         # Store the video path and label
         video_paths.append(video_path)
-        videos_id_list.append(video_id)
 
         # Stack the frames into a NumPy array.
         video_frames = np.array(video_frames)[..., [2, 1, 0]]
@@ -130,4 +126,4 @@ def process_videos(videos):
         processed_videos.append(np.stack(video_frames, axis=0))
 
     # Return the processed videos, video paths, and their labels.
-    return processed_videos, video_paths, videos_id_list
+    return processed_videos, video_paths
