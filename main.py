@@ -22,10 +22,8 @@ def logPrint(msg):
 
 
 def main():
-    videos = 10
-    epochs = 5
-    # videos = 200
-    # epochs = 100
+    videos = 200
+    epochs = 100
 
     if len(sys.argv) < 2:
         print("Usage: {} FA or DA or GA or MIX [-q]".format(sys.argv[0]))
@@ -49,10 +47,8 @@ def main():
                         format='%(message)s')
 
     train_index = int(videos * 0.5)
-    val_index = int(train_index + 5)
-    test_index = int(val_index + 5)
-    # val_index = int(train_index + 50)
-    # test_index = int(val_index + 50)
+    val_index = int(train_index + 50)
+    test_index = int(val_index + 50)
     video_index = int((train_index + val_index + test_index) // 2)
 
     # Disable logging messages
