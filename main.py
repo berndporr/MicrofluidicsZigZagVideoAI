@@ -189,11 +189,6 @@ def main():
     # Fit the model to the training dataset and validation data
     history = model.fit(train_dataset, epochs=epochs, validation_data=val_dataset, callbacks=[csv_logger])
 
-    del(train_dataset)
-    del(train_videos_tensor)
-    del(val_dataset)
-    del(val_videos_tensor)
-
     # Print the final accuracy
     final_accuracy = history.history['accuracy'][-1] * 100
     final_val_accuracy = history.history['val_accuracy'][-1] * 100
@@ -226,6 +221,9 @@ def main():
 
     # Call the plot_predictions function
     plots.plot_predictions(predictions, test_videos_tensor, test_vid_paths)
+
+    # Saves the model
+    model.save(os.path.join(log_directory,'keras.model'))
 
     logging.shutdown()
 
