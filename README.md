@@ -6,9 +6,8 @@ R. K. Rajaram Baskaran, A. Link, B. Porr and T. Franke
 
 # Prerequisites
 
- - Python 3.10.6
- - Tensorflow 2.11.0 
- - Keras
+ - Python 3.10
+ - Tensorflow & Keras 2.13.0
  - OpenCV
  - NumPy
  - Matplotlib
