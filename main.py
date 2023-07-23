@@ -24,6 +24,7 @@ def logPrint(msg):
 def main():
     videos = 200
     epochs = 100
+    video_index = 750 
 
     if len(sys.argv) < 2:
         print("Usage: {} FA or DA or GA or MIX [-q]".format(sys.argv[0]))
@@ -50,7 +51,7 @@ def main():
     # val_index = int(train_index + 50)
     # test_index = int(val_index + 50)
     # video_index = int((train_index + val_index + test_index) // 2)
-    video_index = 1000
+    
 
     # Disable logging messages
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -140,21 +141,21 @@ def main():
 
     csv_logger = tf.keras.callbacks.CSVLogger(os.path.join(log_directory, "model_fit.tsv"), separator="\t")
 
-    num_repetitions = 5
+    num_repetitions = 4
     times = 0 # Indicates that the 'times'th cycle is in progress
     # Repeat 'num_repetitions' times using the for loop
     for i in range(num_repetitions):
         start_index = int(videos * times)
-        print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+_+-+-+times:"+str(times)+":"+str(start_index))
+        logPrint("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+_+-+-+times:"+str(times)+"start_index,:"+str(start_index))
         times += 1
         # Pass different indexes and label lists in each iteration
         train_idx = int(start_index + 100)
         val_idx = int(train_idx + 50)
-        test_idx = int(val_idx + 50)
+        # test_idx = int(val_idx + 50)
         # Here can modify the train as needed_ Idx, val_ Idx and test_ Idx, such as using different random partitions
         # Call get_ Dataset function, passing different parameters
-        train_dataset, val_dataset, test_dataset, test_videos_tensor, test_vid_paths = get_dataset(native_videos, modified_videos, native_labels, modified_labels, start_index,train_idx, val_idx, test_idx, log_directory)
-        print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+_+-+-+times:"+str(len(test_dataset)))
+        # train_dataset, val_dataset, test_dataset, test_videos_tensor, test_vid_paths = get_dataset(native_videos, modified_videos, native_labels, modified_labels, start_index,train_idx, val_idx, test_idx, log_directory)
+        train_dataset, val_dataset = get_dataset(native_videos, modified_videos, native_labels, modified_labels, start_index,train_idx, val_idx, test_idx, log_directory)
         # Fit the model to the training dataset and validation data
         history = model.fit(train_dataset, epochs=epochs, validation_data=val_dataset, callbacks=[csv_logger])
         
@@ -174,30 +175,35 @@ def main():
         training_loss = history.history['loss']
         validation_loss = history.history['val_loss']
 
-        # Test the model on the test dataset
-        test_loss, test_accuracy = model.evaluate(test_dataset)
-
-        # Print the test accuracy
-        logPrint("")
-        logPrint("{} test accuracy: {:.2f}%".format(option, test_accuracy * 100))
-        logPrint("")
-
-        # Call the plot_accuracy_and_loss function
-        plots.plot_accuracy_and_loss(training_accuracy, validation_accuracy, training_loss, validation_loss)
-
-        # Make predictions on the test dataset
-        predictions = model.predict(test_dataset)
-
-        # Call the plot_predictions function
-        plots.plot_predictions(predictions, test_videos_tensor, test_vid_paths)
-
+       
         del(train_dataset)
         del(val_dataset)
-        del(test_dataset)
-        del(test_videos_tensor)
+        
     
     # --------------------to--------------- #
+    
+    start_test_index = int(video_index - 100)
+    test_idx = int(video_index)
+    logPrint("get test from :"+str(start_test_index)+" to "+str(test_idx))
+    test_dataset, test_videos_tensor, test_vid_paths = get_test_dataset(native_videos, modified_videos, native_labels, modified_labels, start_test_index, test_index, log_directory)
+    # Test the model on the test dataset
+    test_loss, test_accuracy = model.evaluate(test_dataset)
 
+    # Print the test accuracy
+    logPrint("")
+    logPrint("{} test accuracy: {:.2f}%".format(option, test_accuracy * 100))
+    logPrint("")
+
+    # Call the plot_accuracy_and_loss function
+    plots.plot_accuracy_and_loss(training_accuracy, validation_accuracy, training_loss, validation_loss)
+
+    # Make predictions on the test dataset
+    predictions = model.predict(test_dataset)
+
+    # Call the plot_predictions function
+    plots.plot_predictions(predictions, test_videos_tensor, test_vid_paths)
+    del(test_dataset)
+    del(test_videos_tensor)
 
     logging.shutdown()
 

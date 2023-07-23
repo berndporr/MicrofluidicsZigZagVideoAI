@@ -137,16 +137,16 @@ def get_dataset(native_videos, modified_videos, native_labels, modified_labels, 
     val_native_videos, val_native_labels = native_videos[train_index:val_index], native_labels[train_index:val_index]
     val_modified_videos, val_modified_labels = modified_videos[train_index:val_index], modified_labels[train_index:val_index]
 
-    test_native_videos, test_native_labels = native_videos[val_index:test_index], native_labels[val_index:test_index]
-    test_modified_videos, test_modified_labels = modified_videos[val_index:test_index], modified_labels[val_index:test_index]
+    # test_native_videos, test_native_labels = native_videos[val_index:test_index], native_labels[val_index:test_index]
+    # test_modified_videos, test_modified_labels = modified_videos[val_index:test_index], modified_labels[val_index:test_index]
 
     # Save videos and labels
     save_video_labels_to_file(os.path.join(log_directory, "train_videos.txt"), train_native_videos + train_modified_videos,
                               train_native_labels + train_modified_labels)
     save_video_labels_to_file(os.path.join(log_directory, "val_videos.txt"), val_native_videos + val_modified_videos,
                               val_native_labels + val_modified_labels)
-    save_video_labels_to_file(os.path.join(log_directory, "test_videos.txt"), test_native_videos + test_modified_videos,
-                              test_native_labels + test_modified_labels)
+    # save_video_labels_to_file(os.path.join(log_directory, "test_videos.txt"), test_native_videos + test_modified_videos,
+    #                           test_native_labels + test_modified_labels)
 
     # Split the dataset into train, validation, and test sets.
     train_videos_tensor, train_labels_tensor, train_vid_paths = process_dataset(train_native_videos,
@@ -157,10 +157,10 @@ def get_dataset(native_videos, modified_videos, native_labels, modified_labels, 
                                                                           val_modified_videos,
                                                                           val_native_labels,
                                                                           val_modified_labels)
-    test_videos_tensor, test_labels_tensor, test_vid_paths = process_dataset(test_native_videos,
-                                                                             test_modified_videos,
-                                                                             test_native_labels,
-                                                                             test_modified_labels)
+    # test_videos_tensor, test_labels_tensor, test_vid_paths = process_dataset(test_native_videos,
+    #                                                                          test_modified_videos,
+    #                                                                          test_native_labels,
+    #                                                                          test_modified_labels)
 
     # Process the dataset into a form that can be used by the model
     autotune = tf.data.experimental.AUTOTUNE
@@ -173,9 +173,9 @@ def get_dataset(native_videos, modified_videos, native_labels, modified_labels, 
     val_dataset.cache().prefetch(buffer_size=autotune)
     val_dataset = val_dataset.batch(1)
 
-    test_dataset = tf.data.Dataset.zip((test_videos_tensor, test_labels_tensor))
-    test_dataset.cache().prefetch(buffer_size=autotune)
-    test_dataset = test_dataset.batch(1)
+    # test_dataset = tf.data.Dataset.zip((test_videos_tensor, test_labels_tensor))
+    # test_dataset.cache().prefetch(buffer_size=autotune)
+    # test_dataset = test_dataset.batch(1)
     
     
     del(train_videos_tensor)
@@ -184,7 +184,35 @@ def get_dataset(native_videos, modified_videos, native_labels, modified_labels, 
     del(val_videos_tensor)
     del(val_labels_tensor)
 
+    # del(test_labels_tensor)
+
+
+    return train_dataset, val_dataset #, test_dataset, test_videos_tensor, test_vid_paths
+
+
+# Processing test videos and frames, obtaining test_datasets
+def get_test_dataset(native_videos, modified_videos, native_labels, modified_labels, start_index, test_index, log_directory):  
+    test_native_videos, test_native_labels = native_videos[start_index:test_index], native_labels[start_index:test_index]
+    test_modified_videos, test_modified_labels = modified_videos[start_index:test_index], modified_labels[start_index:test_index]
+
+    # Save videos and labels
+    save_video_labels_to_file(os.path.join(log_directory, "test_videos.txt"), test_native_videos + test_modified_videos,
+                              test_native_labels + test_modified_labels)
+
+    # Split the dataset into train, validation, and test sets.
+    test_videos_tensor, test_labels_tensor, test_vid_paths = process_dataset(test_native_videos,
+                                                                             test_modified_videos,
+                                                                             test_native_labels,
+                                                                             test_modified_labels)
+
+    # Process the dataset into a form that can be used by the model
+    autotune = tf.data.experimental.AUTOTUNE
+
+    test_dataset = tf.data.Dataset.zip((test_videos_tensor, test_labels_tensor))
+    test_dataset.cache().prefetch(buffer_size=autotune)
+    test_dataset = test_dataset.batch(1)
+    
     del(test_labels_tensor)
 
 
-    return train_dataset, val_dataset, test_dataset, test_videos_tensor, test_vid_paths
+    return test_dataset, test_videos_tensor, test_vid_paths
