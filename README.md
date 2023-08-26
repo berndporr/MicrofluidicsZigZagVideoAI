@@ -4,6 +4,8 @@ R. K. Rajaram Baskaran, A. Link, B. Porr and T. Franke
 
 [![DOI](https://zenodo.org/badge/570490201.svg)](https://zenodo.org/badge/latestdoi/570490201)
 
+The repository has been archived and is read-only.
+
 # Prerequisites
 
  - Python 3.10
