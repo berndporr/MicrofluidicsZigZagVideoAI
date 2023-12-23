@@ -1,8 +1,10 @@
 # Classification of chemically modified red blood cells in microflow using machine learning video analysis
 
-R. K. Rajaram Baskaran, A. Link, B. Porr and T. Franke
+Baskaran R K R, Link A, Porr B, Franke T (2024)
 
-[![DOI](https://zenodo.org/badge/570490201.svg)](https://zenodo.org/badge/latestdoi/570490201)
+Soft Matter
+
+Code DOI: [![DOI](https://zenodo.org/badge/570490201.svg)](https://zenodo.org/badge/latestdoi/570490201)
 
 The repository has been archived and is read-only.
 
