@@ -4,7 +4,7 @@ Baskaran R K R, Link A, Porr B, Franke T (2024)
 
 Soft Matter
 
-Code DOI: [![DOI](https://zenodo.org/badge/570490201.svg)](https://zenodo.org/badge/latestdoi/570490201)
+[DOI of the code: 10.5281/zenodo.8126539](https://zenodo.org/badge/latestdoi/570490201)
 
 The repository has been archived and is read-only.
 
